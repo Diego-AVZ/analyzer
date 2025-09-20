@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const beep = require('node-beep');
 
 class PumpFunBot {
     constructor() {
@@ -9,6 +10,7 @@ class PumpFunBot {
         this.isConnected = false;
         this.filterTerm = 'dobby'; // Término de filtro por defecto
         this.filterEnabled = true; // Filtro habilitado por defecto
+        this.alarmEnabled = true; // Alarma habilitada por defecto
     }
 
     connect() {
@@ -69,6 +71,11 @@ class PumpFunBot {
         if (data.txType === 'create' && data.mint && data.name && data.symbol) {
             // Aplicar filtro para tokens que contengan el término en name o symbol
             if (this.shouldShowToken(data)) {
+                // Reproducir alarma si está habilitada
+                if (this.alarmEnabled) {
+                    this.playAlarm();
+                }
+                
                 console.log('\n🆕 ¡NUEVO TOKEN DETECTADO!');
                 console.log(`📛 Nombre: ${data.name}`);
                 console.log(`🔤 Símbolo: ${data.symbol}`);
@@ -115,6 +122,25 @@ class PumpFunBot {
     toggleFilter(enabled) {
         this.filterEnabled = enabled;
         console.log(`🔍 Filtro ${enabled ? 'habilitado' : 'deshabilitado'}`);
+    }
+
+    // Método para reproducir alarma
+    playAlarm() {
+        try {
+            // Reproducir múltiples beeps para hacer una alarma más notoria
+            beep();
+            setTimeout(() => beep(), 200);
+            setTimeout(() => beep(), 400);
+            setTimeout(() => beep(), 600);
+        } catch (error) {
+            console.log('🔇 No se pudo reproducir la alarma:', error.message);
+        }
+    }
+
+    // Método para habilitar/deshabilitar la alarma
+    toggleAlarm(enabled) {
+        this.alarmEnabled = enabled;
+        console.log(`🔊 Alarma ${enabled ? 'habilitada' : 'deshabilitada'}`);
     }
 
     handleReconnect() {
@@ -192,6 +218,7 @@ console.log('🤖 Iniciando PumpFun Bot...');
 console.log('📋 Funcionalidades:');
 console.log('   • Detección de nuevos tokens en tiempo real');
 console.log('   • Filtro activo: Solo tokens con "dobby" en nombre/símbolo');
+console.log('   • Alarma sonora cuando detecta tokens coincidentes');
 console.log('   • Reconexión automática en caso de desconexión');
 console.log('   • Manejo de errores robusto');
 console.log('   • Logs detallados de eventos');
@@ -214,6 +241,16 @@ bot.connect();
 //     // Volver a habilitar el filtro
 //     bot.toggleFilter(true);
 // }, 30000);
+
+// setTimeout(() => {
+//     // Deshabilitar la alarma
+//     bot.toggleAlarm(false);
+// }, 15000);
+
+// setTimeout(() => {
+//     // Volver a habilitar la alarma
+//     bot.toggleAlarm(true);
+// }, 25000);
 
 // Ejemplo de uso adicional (descomenta si necesitas suscribirte a tokens específicos)
 // setTimeout(() => {

@@ -1,0 +1,2 @@
+Estrategia,Recomendacion,Confianza,DiasValidos,DiasGanadores,DiasPerdedores,WinRate%,LossRate%,GananciaTotal%,GananciaPromedioDiaria%,GananciaMaximaDia%,PerdidaMaximaDia%,MaxConsecutivoGanador,MaxConsecutivoPerdedor,VolatilidadGanancias%,SharpeRatio,MaxDrawdown%,ConsistenciaScore
+LONG LINKUSDT/SHORT DOTUSDT,HOLD,57.07,200,103,97,51.50,48.50,55.69,0.28,11.08,-6.97,7,5,2.56,0.11,24.44,74.4

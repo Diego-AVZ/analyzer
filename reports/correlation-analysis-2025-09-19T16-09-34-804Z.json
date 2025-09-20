@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-09-19T16:09:34.807Z",
+  "summary": {
+    "totalPairs": 1,
+    "strongInverse": 0,
+    "moderateInverse": 0,
+    "weakInverse": 0,
+    "noCorrelation": 1
+  },
+  "results": [
+    {
+      "pair": "BTCUSDT/ETHUSDT",
+      "recommendation": "NO_CORRELATION",
+      "confidence": 86,
+      "stats": {
+        "tokenA": "BTCUSDT",
+        "tokenB": "ETHUSDT",
+        "totalDays": 200,
+        "validDays": 200,
+        "inverseCorrelationDays": 28,
+        "inverseCorrelationPercentage": 14.000000000000002,
+        "oppositeDirectionDays": 48,
+        "oppositeDirectionPercentage": 24,
+        "aOutperformsB": 105,
+        "aOutperformsBPercentage": 52.5,
+        "bOutperformsA": 95,
+        "bOutperformsAPercentage": 47.5,
+        "averageDifference": -0.27688006479842564,
+        "averageDifferenceWhenAUp": 1.533327293249656,
+        "averageDifferenceWhenBUp": -2.2776355657989362,
+        "correlationCoefficient": 0.7756206992493045,
+        "maxSingleDayDifference": 6.358158745061085,
+        "minSingleDayDifference": -15.458709012445198,
+        "consistencyScore": 72.67043005674097,
+        "aVolatility": 2.020850529526059,
+        "bVolatility": 3.9844369083312934,
+        "volatilityRatio": 0.5071859778480978,
+        "maxConsecutiveInverseDays": 3,
+        "currentConsecutiveInverseDays": 3
+      },
+      "strategyAdvice": "❌ SIN CORRELACIÓN INVERSA SIGNIFICATIVA: Solo 14.0% de días con correlación inversa.\n      Estrategia recomendada: Buscar otros pares de tokens o estrategias diferentes.\n\n📈 MÉTRICAS ADICIONALES:\n    • Días opuestos: 24.0%\n    • BTCUSDT supera a ETHUSDT: 52.5%\n    • ETHUSDT supera a BTCUSDT: 47.5%\n    • Volatilidad BTCUSDT: 2.02%\n    • Volatilidad ETHUSDT: 3.98%\n    • Ratio volatilidad: 0.51\n    • Máximo consecutivo inverso: 3 días\n    • Consistencia: 72.7/100"
+    }
+  ]
+}

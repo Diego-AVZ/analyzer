@@ -1,0 +1,2 @@
+Estrategia,Recomendacion,Confianza,DiasValidos,DiasGanadores,DiasPerdedores,WinRate%,LossRate%,GananciaTotal%,GananciaPromedioDiaria%,GananciaMaximaDia%,PerdidaMaximaDia%,MaxConsecutivoGanador,MaxConsecutivoPerdedor,VolatilidadGanancias%,SharpeRatio,MaxDrawdown%,ConsistenciaScore
+LONG BTCUSDT/SHORT CRVUSDT,SELL,53.42,200,105,95,52.50,47.50,-59.24,-0.30,11.26,-20.93,5,8,4.40,-0.07,88.29,56.0

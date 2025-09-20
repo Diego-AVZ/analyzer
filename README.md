@@ -1,161 +1,205 @@
-# PumpFun Bot 🤖
+# 📊 Analizador de Correlaciones Inversas - Binance
 
-Bot de Node.js que obtiene nuevos tokens creados en Pump.fun en tiempo real usando el WebSocket de PumpPortal.
+Este script en TypeScript analiza correlaciones inversas entre pares de tokens de Binance para identificar oportunidades de trading con estrategias Long/Short.
 
 ## 🚀 Características
 
-- **Detección en tiempo real**: Recibe notificaciones instantáneas de nuevos tokens creados en Pump.fun
-- **Filtro inteligente**: Solo muestra tokens que contengan "dobby" en el nombre o símbolo
-- **Filtro configurable**: Puedes cambiar el término de búsqueda o deshabilitar el filtro
-- **Reconexión automática**: Se reconecta automáticamente si se pierde la conexión
-- **Manejo robusto de errores**: Gestiona errores de conexión y parsing de datos
-- **Logs detallados**: Muestra información completa de cada evento
-- **Múltiples suscripciones**: Soporte para suscribirse a tokens y cuentas específicas
+- **Análisis de correlaciones inversas**: Identifica pares donde un token sube cuando el otro baja
+- **Métricas estadísticas avanzadas**: Correlación de Pearson, volatilidad, consistencia
+- **Señales de trading**: Genera señales de entrada y salida basadas en patrones históricos
+- **Reportes detallados**: Genera reportes en consola, JSON y CSV
+- **Configuración flexible**: Fácil personalización de pares de tokens y parámetros
 
 ## 📋 Requisitos
 
-- Node.js (versión 14 o superior)
-- npm
+- Node.js 16+ 
+- npm o yarn
 
 ## 🛠️ Instalación
 
-1. Clona el repositorio:
-```bash
-git clone <tu-repositorio>
-cd something
-```
-
-2. Instala las dependencias:
+1. **Instalar dependencias**:
 ```bash
 npm install
 ```
 
-## 🎯 Uso
+2. **Compilar TypeScript**:
+```bash
+npm run build
+```
 
-### Ejecutar el bot básico
+3. **Ejecutar el análisis**:
 ```bash
 npm start
 ```
 
-### Ejecutar en modo desarrollo
+O para desarrollo:
 ```bash
 npm run dev
 ```
 
-## 📡 Funcionalidades del WebSocket
+## ⚙️ Configuración
 
-El bot se conecta al WebSocket de PumpPortal (`wss://pumpportal.fun/api/data`) y puede suscribirse a:
+Edita `src/config.ts` para personalizar:
 
-### 1. Nuevos Tokens (Principal)
-```javascript
-// Se suscribe automáticamente a nuevos tokens
-method: "subscribeNewToken"
+### Pares de Tokens
+```typescript
+tokenPairs: [
+  {
+    tokenA: 'BTCUSDT',
+    tokenB: 'ETHUSDT',
+    description: 'Bitcoin vs Ethereum'
+  },
+  // Añade más pares...
+]
 ```
 
-### 2. Trades de Tokens Específicos
-```javascript
-// Ejemplo de uso en el código
-bot.subscribeToTokenTrades(['91WNez8D22NwBssQbkzjy4s2ipFrzpmn5hfvWVe2aY5p']);
-```
+### Parámetros de Análisis
+```typescript
+binanceApi: {
+  baseUrl: 'https://api.binance.com/api/v3/klines',
+  interval: '1d',        // Intervalo de tiempo
+  limit: 200            // Días a analizar
+},
 
-### 3. Trades de Cuentas Específicas
-```javascript
-// Ejemplo de uso en el código
-bot.subscribeToAccountTrades(['AArPXm8JatJiuyEffuC1un2Sc835SULa4uQqDcaGpAjV']);
-```
-
-## 🔧 Configuración
-
-### Variables de Entorno (Opcional)
-Puedes crear un archivo `.env` para configurar:
-
-```env
-# Configuración del WebSocket
-WS_URL=wss://pumpportal.fun/api/data
-MAX_RECONNECT_ATTEMPTS=5
-RECONNECT_DELAY=5000
-```
-
-### Control del Filtro
-
-El bot incluye un sistema de filtrado configurable:
-
-```javascript
-// Cambiar el término de filtro
-bot.setFilterTerm('chippy');
-
-// Deshabilitar el filtro (ver todos los tokens)
-bot.toggleFilter(false);
-
-// Habilitar el filtro nuevamente
-bot.toggleFilter(true);
-```
-
-### Personalización
-Puedes modificar el archivo `index.js` para:
-
-- Cambiar el término de filtro por defecto
-- Modificar el formato de los logs
-- Agregar filtros adicionales
-- Integrar con bases de datos
-- Enviar notificaciones a Telegram/Discord
-- Implementar análisis de datos
-
-## 📊 Estructura de Datos
-
-Cuando se detecta un nuevo token, recibirás un objeto JSON con información como:
-
-```json
-{
-  "type": "newToken",
-  "data": {
-    "tokenAddress": "...",
-    "creator": "...",
-    "timestamp": "...",
-    "metadata": {
-      "name": "...",
-      "symbol": "...",
-      "description": "..."
-    }
-  }
+analysis: {
+  minDaysForAnalysis: 30,           // Mínimo días para análisis válido
+  correlationThreshold: -0.3       // Umbral correlación inversa
 }
 ```
 
-## ⚠️ Limitaciones Importantes
+## 📊 Métricas Analizadas
 
-- **Una sola conexión**: Solo usa UNA conexión WebSocket a la vez
-- **No spam**: No abras múltiples conexiones simultáneas o podrías ser bloqueado
-- **Rate limiting**: Respeta los límites de la API
+### Estadísticas Básicas
+1. **Días de correlación inversa**: Cuando A sube más que B baja, o viceversa
+2. **Días opuestos**: Cuando uno sube y el otro baja
+3. **Días de outperformance**: Cuando un token supera al otro
+4. **Diferencia promedio**: % de cambio promedio entre tokens
 
-## 🛑 Detener el Bot
+### Métricas Avanzadas
+- **Coeficiente de correlación de Pearson**
+- **Volatilidad individual y ratio**
+- **Score de consistencia**
+- **Días consecutivos de correlación inversa**
+- **Métricas de momentum y reversión**
+- **Análisis de volumen**
+- **Señales de entrada/salida**
+- **Métricas de riesgo (VaR, Sharpe ratio, Drawdown)**
 
-Para detener el bot de forma segura:
-- Presiona `Ctrl + C` en la terminal
-- El bot se desconectará automáticamente del WebSocket
+## 📈 Interpretación de Resultados
 
-## 🔗 Enlaces Útiles
+### Recomendaciones
+- 🔥 **STRONG_INVERSE**: Correlación inversa fuerte (>40% días, correlación < -0.3)
+- ⚡ **MODERATE_INVERSE**: Correlación inversa moderada (25-40% días)
+- 📊 **WEAK_INVERSE**: Correlación inversa débil (15-25% días)
+- ❌ **NO_CORRELATION**: Sin correlación significativa (<15% días)
 
-- [Documentación de PumpPortal](https://pumpportal.fun/data-api/real-time)
-- [Pump.fun](https://pump.fun)
+### Estrategias Sugeridas
+- **Long A cuando B baja**: Si A tiende a subir cuando B baja
+- **Short B cuando A sube**: Si B tiende a bajar cuando A sube
+- **Posiciones contrarias**: En días de alta volatilidad
 
-## 📝 Logs
+## 📁 Estructura del Proyecto
 
-El bot muestra logs detallados incluyendo:
-- Estado de conexión
-- Nuevos tokens detectados
-- Errores y reconexiones
-- Timestamps de eventos
+```
+src/
+├── config.ts              # Configuración de tokens y parámetros
+├── types.ts               # Definiciones de tipos TypeScript
+├── binanceService.ts      # Servicio para API de Binance
+├── correlationAnalyzer.ts  # Analizador de correlaciones
+├── advancedMetrics.ts     # Métricas avanzadas para trading
+├── reportGenerator.ts     # Generador de reportes
+└── index.ts              # Script principal
+
+reports/                   # Reportes generados (JSON y CSV)
+├── correlation-analysis-[timestamp].json
+└── correlation-analysis-[timestamp].csv
+```
+
+## 🔧 Uso Programático
+
+```typescript
+import { BinanceCorrelationAnalyzer } from './src/index';
+
+const analyzer = new BinanceCorrelationAnalyzer();
+await analyzer.run();
+```
+
+## 📊 Ejemplo de Salida
+
+```
+📊 REPORTE DE ANÁLISIS DE CORRELACIONES INVERSAS - BINANCE
+================================================================================
+
+📋 RESUMEN EJECUTIVO
+--------------------------------------------------
+🔍 Total de pares analizados: 10
+🔥 Correlaciones inversas fuertes: 2
+⚡ Correlaciones inversas moderadas: 3
+📊 Correlaciones inversas débiles: 3
+❌ Sin correlación significativa: 2
+
+🎯 MEJORES OPORTUNIDADES:
+1. BTCUSDT/ETHUSDT - Confianza: 85.3%
+2. BTCUSDT/SOLUSDT - Confianza: 78.2%
+
+📈 RESULTADOS DETALLADOS POR PAR
+--------------------------------------------------
+
+1. BTCUSDT/ETHUSDT
+   Recomendación: 🔥 STRONG_INVERSE
+   Confianza: 85.3%
+   📊 Estadísticas:
+      • Días válidos: 198/200
+      • Correlación inversa: 42.4%
+      • Días opuestos: 38.9%
+      • BTCUSDT supera: 52.0%
+      • ETHUSDT supera: 48.0%
+      • Diferencia promedio: 1.23%
+      • Coeficiente correlación: -0.342
+      • Volatilidad BTCUSDT: 3.45%
+      • Volatilidad ETHUSDT: 4.12%
+      • Máximo consecutivo inverso: 7 días
+      • Consistencia: 78.5/100
+   💡 Estrategia: 🔥 CORRELACIÓN INVERSA FUERTE: 42.4% de días con correlación inversa.
+```
+
+## ⚠️ Consideraciones Importantes
+
+- **Datos históricos**: El análisis se basa en datos pasados, no garantiza resultados futuros
+- **Gestión de riesgo**: Siempre implementar stop-loss y position sizing adecuado
+- **Comisiones**: Considerar spreads y comisiones en las estrategias
+- **Monitoreo**: Las correlaciones pueden cambiar con el tiempo
+- **Diversificación**: No depender de una sola correlación
+
+## 🐛 Solución de Problemas
+
+### Error de conexión a Binance
+- Verificar conexión a internet
+- Comprobar que la API de Binance esté disponible
+- Revisar límites de rate limiting
+
+### Datos insuficientes
+- Aumentar el `limit` en la configuración
+- Verificar que los símbolos existan en Binance
+- Comprobar que hay suficientes días de trading
+
+### Errores de compilación
+- Verificar que TypeScript esté instalado: `npm install -g typescript`
+- Limpiar y reinstalar: `rm -rf node_modules package-lock.json && npm install`
+
+## 📝 Licencia
+
+ISC License - Ver archivo LICENSE para más detalles.
 
 ## 🤝 Contribuciones
 
 Las contribuciones son bienvenidas. Por favor:
-
 1. Fork el proyecto
 2. Crea una rama para tu feature
 3. Commit tus cambios
 4. Push a la rama
 5. Abre un Pull Request
 
-## 📄 Licencia
+## 📞 Soporte
 
-Este proyecto está bajo la licencia ISC.
+Para reportar bugs o solicitar features, abre un issue en GitHub.

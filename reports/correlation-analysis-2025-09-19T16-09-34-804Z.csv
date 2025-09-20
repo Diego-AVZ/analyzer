@@ -1,0 +1,2 @@
+Par,Recomendacion,Confianza,DiasValidos,CorrelacionInversa%,DiasOpuestos%,TokenA_Supera%,TokenB_Supera%,DiferenciaPromedio%,CoeficienteCorrelacion,VolatilidadA%,VolatilidadB%,MaxConsecutivoInverso,ConsistenciaScore
+BTCUSDT/ETHUSDT,NO_CORRELATION,86.00,200,14.00,24.00,52.50,47.50,-0.28,0.776,2.02,3.98,3,72.7

@@ -1,0 +1,3 @@
+Par,Recomendacion,Confianza,DiasValidos,CorrelacionInversa%,DiasOpuestos%,TokenA_Supera%,TokenB_Supera%,DiferenciaPromedio%,CoeficienteCorrelacion,VolatilidadA%,VolatilidadB%,MaxConsecutivoInverso,ConsistenciaScore
+ARBUSDT/OPUSDT,NO_CORRELATION,96.00,200,4.00,10.50,54.00,46.00,0.23,0.914,5.77,5.39,1,76.5
+DOTUSDT/BTCUSDT,WEAK_INVERSE,16.50,200,16.50,24.00,45.50,54.50,-0.11,0.726,3.71,2.02,3,73.7

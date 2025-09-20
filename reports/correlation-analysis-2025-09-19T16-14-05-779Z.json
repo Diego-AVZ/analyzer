@@ -1,0 +1,76 @@
+{
+  "timestamp": "2025-09-19T16:14:05.782Z",
+  "summary": {
+    "totalPairs": 2,
+    "strongInverse": 0,
+    "moderateInverse": 0,
+    "weakInverse": 0,
+    "noCorrelation": 2
+  },
+  "results": [
+    {
+      "pair": "SOLUSDT/DOTUSDT",
+      "recommendation": "NO_CORRELATION",
+      "confidence": 98,
+      "stats": {
+        "tokenA": "SOLUSDT",
+        "tokenB": "DOTUSDT",
+        "totalDays": 50,
+        "validDays": 50,
+        "inverseCorrelationDays": 1,
+        "inverseCorrelationPercentage": 2,
+        "oppositeDirectionDays": 4,
+        "oppositeDirectionPercentage": 8,
+        "aOutperformsB": 26,
+        "aOutperformsBPercentage": 52,
+        "bOutperformsA": 24,
+        "bOutperformsAPercentage": 48,
+        "averageDifference": 0.28410010265310803,
+        "averageDifferenceWhenAUp": 1.8398355124850705,
+        "averageDifferenceWhenBUp": -1.4012799246648509,
+        "correlationCoefficient": 0.8805592362207262,
+        "maxSingleDayDifference": 4.911562464225021,
+        "minSingleDayDifference": -3.9229736392849524,
+        "consistencyScore": 80.76063264832015,
+        "aVolatility": 4.04412301876797,
+        "bVolatility": 3.728310327325138,
+        "volatilityRatio": 1.0847066536087973,
+        "maxConsecutiveInverseDays": 1,
+        "currentConsecutiveInverseDays": 1
+      },
+      "strategyAdvice": "❌ SIN CORRELACIÓN INVERSA SIGNIFICATIVA: Solo 2.0% de días con correlación inversa.\n      Estrategia recomendada: Buscar otros pares de tokens o estrategias diferentes.\n\n📈 MÉTRICAS ADICIONALES:\n    • Días opuestos: 8.0%\n    • SOLUSDT supera a DOTUSDT: 52.0%\n    • DOTUSDT supera a SOLUSDT: 48.0%\n    • Volatilidad SOLUSDT: 4.04%\n    • Volatilidad DOTUSDT: 3.73%\n    • Ratio volatilidad: 1.08\n    • Máximo consecutivo inverso: 1 días\n    • Consistencia: 80.8/100"
+    },
+    {
+      "pair": "ARBUSDT/OPUSDT",
+      "recommendation": "NO_CORRELATION",
+      "confidence": 96,
+      "stats": {
+        "tokenA": "ARBUSDT",
+        "tokenB": "OPUSDT",
+        "totalDays": 50,
+        "validDays": 50,
+        "inverseCorrelationDays": 2,
+        "inverseCorrelationPercentage": 4,
+        "oppositeDirectionDays": 2,
+        "oppositeDirectionPercentage": 4,
+        "aOutperformsB": 22,
+        "aOutperformsBPercentage": 44,
+        "bOutperformsA": 28,
+        "bOutperformsAPercentage": 56.00000000000001,
+        "averageDifference": 0.1261611016418824,
+        "averageDifferenceWhenAUp": 2.240350909833059,
+        "averageDifferenceWhenBUp": -1.5349880333654706,
+        "correlationCoefficient": 0.9143662944043824,
+        "maxSingleDayDifference": 8.54335208443744,
+        "minSingleDayDifference": -4.254828102617882,
+        "consistencyScore": 73.99261389210572,
+        "aVolatility": 6.231955063763773,
+        "bVolatility": 5.068144883438198,
+        "volatilityRatio": 1.2296323816883572,
+        "maxConsecutiveInverseDays": 1,
+        "currentConsecutiveInverseDays": 1
+      },
+      "strategyAdvice": "❌ SIN CORRELACIÓN INVERSA SIGNIFICATIVA: Solo 4.0% de días con correlación inversa.\n      Estrategia recomendada: Buscar otros pares de tokens o estrategias diferentes.\n\n📈 MÉTRICAS ADICIONALES:\n    • Días opuestos: 4.0%\n    • ARBUSDT supera a OPUSDT: 44.0%\n    • OPUSDT supera a ARBUSDT: 56.0%\n    • Volatilidad ARBUSDT: 6.23%\n    • Volatilidad OPUSDT: 5.07%\n    • Ratio volatilidad: 1.23\n    • Máximo consecutivo inverso: 1 días\n    • Consistencia: 74.0/100"
+    }
+  ]
+}
