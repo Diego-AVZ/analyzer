@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import { apiService, AnalysisRequest, AnalysisResponse } from './services/api';
 import DeltaNeutralAnalyzer from './components/DeltaNeutralAnalyzer';
