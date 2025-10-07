@@ -50,9 +50,16 @@ export class BinanceService {
       
       if (error.response) {
         // Error de respuesta HTTP
+        const status = error.response.status;
+        let errorMessage = `Error HTTP ${status}: ${error.response.data?.msg || error.message}`;
+        
+        if (status === 451) {
+          errorMessage = `Error HTTP 451: Binance bloquea el acceso desde esta región. Por favor, contacta al soporte si crees que esto es un error.`;
+        }
+        
         return {
           success: false,
-          error: `Error HTTP ${error.response.status}: ${error.response.data?.msg || error.message}`,
+          error: errorMessage,
           symbol: symbol
         };
       } else if (error.request) {
