@@ -26,7 +26,6 @@
   "description": "Analizador de correlaciones inversas entre tokens de Binance",
   "dependencies": {
     "axios": "^1.6.0",
-    "node-beep": "^0.0.3",
     "ws": "^8.18.3",
     "express": "^4.18.2",
     "cors": "^2.8.5"

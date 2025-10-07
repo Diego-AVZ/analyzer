@@ -1,5 +1,4 @@
 const WebSocket = require('ws');
-const beep = require('node-beep');
 
 class PumpFunBot {
     constructor() {
@@ -128,10 +127,10 @@ class PumpFunBot {
     playAlarm() {
         try {
             // Reproducir múltiples beeps para hacer una alarma más notoria
-            beep();
-            setTimeout(() => beep(), 200);
-            setTimeout(() => beep(), 400);
-            setTimeout(() => beep(), 600);
+            console.log('🔔 ALARMA: Oportunidad detectada!');
+            setTimeout(() => console.log('🔔 BEEP 2'), 200);
+            setTimeout(() => console.log('🔔 BEEP 3'), 400);
+            setTimeout(() => console.log('🔔 BEEP 4'), 600);
         } catch (error) {
             console.log('🔇 No se pudo reproducir la alarma:', error.message);
         }
