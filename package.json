@@ -3,25 +3,26 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run build-frontend",
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node src/index.ts",
     "frontend": "cd frontend && npm start",
     "build-frontend": "cd frontend && npm run build",
     "server": "npm run build && node backend-server.js",
     "dev-server": "npm run build && nodemon backend-server.js",
+    "vercel-build": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Diego-AVZ/something.git"
+    "url": "git+https://github.com/Diego-AVZ/analyzer.git"
   },
   "author": "diego-avz",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Diego-AVZ/something/issues"
+    "url": "https://github.com/Diego-AVZ/analyzer/issues"
   },
-  "homepage": "https://github.com/Diego-AVZ/something#readme",
+  "homepage": "https://github.com/Diego-AVZ/analyzer#readme",
   "description": "Analizador de correlaciones inversas entre tokens de Binance",
   "dependencies": {
     "axios": "^1.6.0",
