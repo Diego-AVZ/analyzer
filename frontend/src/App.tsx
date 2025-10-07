@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { apiService, AnalysisRequest, AnalysisResponse } from './services/api';
 import DeltaNeutralAnalyzer from './components/DeltaNeutralAnalyzer';
+import LiquidityRangeCalculator from './components/LiquidityRangeCalculator';
 
 // Usar el tipo del servicio API
 type AnalysisResult = AnalysisResponse;
@@ -10,7 +11,7 @@ type AnalysisResult = AnalysisResponse;
 const AVAILABLE_TOKENS = [
   'ETHUSDT', 'BTCUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
   'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
-  'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT'
+  'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT', 'AAVEUSDT'
 ];
 
 // Períodos de tiempo disponibles
@@ -22,7 +23,7 @@ const TIME_PERIODS = [
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'single' | 'delta-neutral'>('single');
+  const [activeTab, setActiveTab] = useState<'single' | 'delta-neutral' | 'liquidity-range'>('single');
   const [longToken, setLongToken] = useState('ETHUSDT');
   const [shortToken, setShortToken] = useState('APTUSDT');
   const [timePeriod, setTimePeriod] = useState(100);
@@ -82,6 +83,12 @@ function App() {
             onClick={() => setActiveTab('delta-neutral')}
           >
             🔄 Delta Neutral
+          </button>
+          <button 
+            className={`tab ${activeTab === 'liquidity-range' ? 'active' : ''}`}
+            onClick={() => setActiveTab('liquidity-range')}
+          >
+            💧 Rangos de Liquidez
           </button>
         </div>
       </header>
@@ -292,8 +299,10 @@ function App() {
           </div>
             )}
           </>
-        ) : (
+        ) : activeTab === 'delta-neutral' ? (
           <DeltaNeutralAnalyzer />
+        ) : (
+          <LiquidityRangeCalculator />
         )}
       </main>
     </div>

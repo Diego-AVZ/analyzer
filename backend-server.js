@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname, 'frontend/build')));
 const { BinanceService } = require('./dist/binanceService');
 const { LongShortAnalyzer } = require('./dist/longShortAnalyzer');
 const { DeltaNeutralAnalyzer } = require('./dist/deltaNeutralAnalyzer');
+const { LiquidityRangeAnalyzer } = require('./dist/liquidityRangeAnalyzer');
 const { getConfig } = require('./dist/config');
 
 // Endpoint para análisis de estrategia Long/Short
@@ -143,6 +144,108 @@ app.post('/api/delta-neutral', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error en análisis delta neutral:', error);
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
+  }
+});
+
+// Endpoint para análisis de rangos de liquidez
+app.post('/api/liquidity-range', async (req, res) => {
+  try {
+    const { tokenA, tokenB, rangeUpPercent, rangeDownPercent, timePeriod } = req.body;
+    
+    if (!tokenA || !tokenB) {
+      return res.status(400).json({ 
+        error: 'Se requieren tokenA y tokenB' 
+      });
+    }
+
+    if (tokenA === tokenB) {
+      return res.status(400).json({ 
+        error: 'Los tokens deben ser diferentes' 
+      });
+    }
+
+    if (!rangeUpPercent || !rangeDownPercent || rangeUpPercent <= 0 || rangeDownPercent <= 0) {
+      return res.status(400).json({ 
+        error: 'Los porcentajes de rango deben ser positivos' 
+      });
+    }
+
+    console.log(`🔍 Analizando rango de liquidez para ${tokenA}/${tokenB}`);
+    console.log(`📊 Rango: +${rangeUpPercent}% / -${rangeDownPercent}% con ${timePeriod} días...`);
+
+    // Crear servicios
+    const binanceService = new BinanceService(
+      'https://api.binance.com/api/v3/klines',
+      '1d',
+      timePeriod || 100
+    );
+    
+    const liquidityRangeAnalyzer = new LiquidityRangeAnalyzer();
+
+    // Obtener datos de ambos tokens
+    console.log('📊 Obteniendo datos de Binance...');
+    const tokenAData = await binanceService.getKlines(tokenA.toUpperCase());
+    const tokenBData = await binanceService.getKlines(tokenB.toUpperCase());
+
+    if (!tokenAData.success || !tokenBData.success) {
+      return res.status(500).json({ 
+        error: 'Error obteniendo datos de Binance',
+        details: tokenAData.error || tokenBData.error
+      });
+    }
+
+    // Procesar los datos
+    console.log('🔄 Procesando datos...');
+    const klinesA = binanceService.processKlines(tokenAData.data);
+    const klinesB = binanceService.processKlines(tokenBData.data);
+
+    // Validar datos
+    if (!binanceService.validateKlines(klinesA) || !binanceService.validateKlines(klinesB)) {
+      return res.status(500).json({ 
+        error: 'Datos inválidos obtenidos de Binance' 
+      });
+    }
+
+    // Filtrar días válidos
+    const filteredKlinesA = binanceService.filterValidDays(klinesA);
+    const filteredKlinesB = binanceService.filterValidDays(klinesB);
+
+    // Sincronizar timestamps
+    const { synchronizedA, synchronizedB } = binanceService.synchronizeTimestamps(
+      filteredKlinesA, 
+      filteredKlinesB
+    );
+
+    if (synchronizedA.length < 30) {
+      return res.status(500).json({ 
+        error: `Insuficientes datos válidos: ${synchronizedA.length} días (mínimo: 30)` 
+      });
+    }
+
+    console.log(`✅ ${synchronizedA.length} días sincronizados para análisis`);
+
+    // Realizar análisis de rango de liquidez
+    console.log('🔬 Realizando análisis de rango de liquidez...');
+    const result = liquidityRangeAnalyzer.analyzeLiquidityRange(
+      tokenA.toUpperCase(),
+      tokenB.toUpperCase(),
+      synchronizedA,
+      synchronizedB,
+      rangeUpPercent,
+      rangeDownPercent
+    );
+
+    console.log(`✅ Análisis completado: ${result.recommendation} (${result.confidence}%)`);
+
+    // Devolver resultado
+    res.json(result);
+
+  } catch (error) {
+    console.error('❌ Error en análisis de rango de liquidez:', error);
     res.status(500).json({ 
       error: 'Error interno del servidor',
       details: error.message 

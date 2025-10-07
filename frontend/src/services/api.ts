@@ -44,6 +44,54 @@ export interface ApiError {
   details?: string;
 }
 
+// Nuevos tipos para la calculadora de rangos de liquidez
+export interface LiquidityRangeRequest {
+  tokenA: string;
+  tokenB: string;
+  rangeUpPercent: number;
+  rangeDownPercent: number;
+  timePeriod: number;
+}
+
+export interface LiquidityRangeResponse {
+  pair: string;
+  currentPriceA: number;
+  currentPriceB: number;
+  rangeA: {
+    min: number;
+    max: number;
+  };
+  rangeB: {
+    min: number;
+    max: number;
+  };
+  historicalAnalysis: {
+    totalDays: number;
+    daysInRange: number;
+    daysOutOfRangeUp: number;
+    daysOutOfRangeDown: number;
+    timeInRangePercentage: number;
+    averageVolatility: number;
+    maxConsecutiveDaysOut: number;
+  };
+  impermanentLossEstimation: {
+    scenarioUp: {
+      priceRatio: number;
+      impermanentLoss: number;
+      finalValue: number; // Si inviertes $1000
+    };
+    scenarioDown: {
+      priceRatio: number;
+      impermanentLoss: number;
+      finalValue: number; // Si inviertes $1000
+    };
+    feesNeededToCoverIL: number; // Fees necesarios para cubrir IL promedio
+  };
+  recommendation: 'EXCELLENT' | 'GOOD' | 'MODERATE' | 'RISKY';
+  confidence: number;
+  advice: string;
+}
+
 class ApiService {
   private async makeRequest<T>(
     endpoint: string, 
@@ -79,6 +127,13 @@ class ApiService {
 
   async getAvailableTokens(): Promise<string[]> {
     return this.makeRequest<string[]>('/tokens');
+  }
+
+  async analyzeLiquidityRange(request: LiquidityRangeRequest): Promise<LiquidityRangeResponse> {
+    return this.makeRequest<LiquidityRangeResponse>('/liquidity-range', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   }
 }
 
