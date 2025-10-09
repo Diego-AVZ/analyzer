@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiService, StrategyBundle, StrategyBundlesRequest } from '../services/api';
 import './StrategyBundles.css';
 
@@ -16,8 +16,8 @@ const StrategyBundles: React.FC = () => {
     sortBy: 'APR'
   });
 
-  // Cargar estrategias
-  const loadStrategies = async () => {
+  // Cargar estrategias (memoizada para evitar warnings de dependencias)
+  const loadStrategies = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -31,12 +31,12 @@ const StrategyBundles: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   // Cargar al montar el componente y cuando cambien los filtros
   useEffect(() => {
     loadStrategies();
-  }, [filters]);
+  }, [loadStrategies]);
 
   // Función para obtener el color del nivel de riesgo
   const getRiskColor = (riskLevel: string) => {
