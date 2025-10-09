@@ -3,6 +3,7 @@ import './App.css';
 import { apiService, AnalysisRequest, AnalysisResponse } from './services/api';
 import DeltaNeutralAnalyzer from './components/DeltaNeutralAnalyzer';
 import LiquidityRangeCalculator from './components/LiquidityRangeCalculator';
+import StrategyBundles from './components/StrategyBundles';
 
 // Usar el tipo del servicio API
 type AnalysisResult = AnalysisResponse;
@@ -23,7 +24,7 @@ const TIME_PERIODS = [
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'single' | 'delta-neutral' | 'liquidity-range'>('single');
+  const [activeTab, setActiveTab] = useState<'single' | 'delta-neutral' | 'liquidity-range' | 'strategy-bundles'>('strategy-bundles');
   const [longToken, setLongToken] = useState('ETHUSDT');
   const [shortToken, setShortToken] = useState('APTUSDT');
   const [timePeriod, setTimePeriod] = useState(100);
@@ -72,6 +73,12 @@ function App() {
         
         {/* Tabs de navegación */}
         <div className="tabs">
+          <button 
+            className={`tab ${activeTab === 'strategy-bundles' ? 'active' : ''}`}
+            onClick={() => setActiveTab('strategy-bundles')}
+          >
+            🚀 Strategy Bundles
+          </button>
           <button 
             className={`tab ${activeTab === 'single' ? 'active' : ''}`}
             onClick={() => setActiveTab('single')}
@@ -301,8 +308,10 @@ function App() {
           </>
         ) : activeTab === 'delta-neutral' ? (
           <DeltaNeutralAnalyzer />
-        ) : (
+        ) : activeTab === 'liquidity-range' ? (
           <LiquidityRangeCalculator />
+        ) : (
+          <StrategyBundles />
         )}
       </main>
     </div>

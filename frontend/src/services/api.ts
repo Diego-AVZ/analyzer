@@ -49,6 +49,57 @@ export interface ApiError {
   details?: string;
 }
 
+// Nuevos tipos para Strategy Bundles
+export interface StrategyBundle {
+  pair: string;
+  longToken: string;
+  shortToken: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  apr: number;
+  tvl: number;
+  overallScore: number;
+  recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL';
+  confidence: number;
+  // Métricas de 100 días
+  winRate100d: number;
+  avgDailyProfit100d: number;
+  totalProfit100d: number;
+  sharpeRatio100d: number;
+  consistencyScore100d: number;
+  metrics: {
+    [period: string]: {
+      winRate: number;
+      totalProfit: number;
+      averageDailyProfit: number;
+      sharpeRatio: number;
+      consistencyScore: number;
+      recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL';
+      confidence: number;
+      validDays: number;
+    };
+  };
+}
+
+export interface StrategyBundlesResponse {
+  strategies: StrategyBundle[];
+  totalAnalyzed: number;
+  totalFiltered: number;
+  returned: number;
+  cacheInfo: {
+    cached: boolean;
+    generatedAt: string;
+    cacheAge?: number;
+    cacheExpiresIn?: number;
+  };
+}
+
+export interface StrategyBundlesRequest {
+  limit?: number;
+  riskLevel?: 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH';
+  timePeriod?: 'ALL' | '30' | '60' | '100';
+  sortBy?: 'APR' | 'WIN_RATE' | 'SHARPE_RATIO' | 'CONSISTENCY';
+}
+
 // Nuevos tipos para la calculadora de rangos de liquidez
 export interface LiquidityRangeRequest {
   tokenA: string;
@@ -139,6 +190,20 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(request),
     });
+  }
+
+  async getStrategyBundles(request: StrategyBundlesRequest = {}): Promise<StrategyBundlesResponse> {
+    const params = new URLSearchParams();
+    
+    if (request.limit) params.append('limit', request.limit.toString());
+    if (request.riskLevel) params.append('riskLevel', request.riskLevel);
+    if (request.timePeriod) params.append('timePeriod', request.timePeriod);
+    if (request.sortBy) params.append('sortBy', request.sortBy);
+
+    const queryString = params.toString();
+    const endpoint = `/strategy-bundles${queryString ? `?${queryString}` : ''}`;
+    
+    return this.makeRequest<StrategyBundlesResponse>(endpoint);
   }
 }
 
