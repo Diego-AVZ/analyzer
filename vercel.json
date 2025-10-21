@@ -2,7 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "frontend/build",
   "regions": ["lhr1"],
   "builds": [
     {
@@ -21,7 +20,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/build/index.html"
+      "dest": "/frontend/build/$1"
     }
   ]
 }
