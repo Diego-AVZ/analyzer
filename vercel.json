@@ -3,6 +3,11 @@
   "version": 2,
   "buildCommand": "npm run build",
   "regions": ["lhr1"],
+  "functions": {
+    "backend-server.js": {
+      "maxDuration": 30
+    }
+  },
   "builds": [
     {
       "src": "backend-server.js",
