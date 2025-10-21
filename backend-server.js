@@ -263,35 +263,21 @@ function calculateAPR(metrics) {
   const periods = Object.keys(metrics);
   if (periods.length === 0) return 0;
 
-  // Priorizar períodos más largos para APR más realista
-  const periodPriority = ['100d', '60d', '30d'];
+  // Usar el mejor período para calcular APR (sin reinversión)
+  let bestAPR = 0;
   
-  for (const period of periodPriority) {
+  for (const period of periods) {
     const metric = metrics[period];
     if (metric && metric.validDays >= 30) {
       const days = parseInt(period.replace('d', ''));
       const totalProfit = metric.totalProfit;
-      
       // APR simple: ganancia total * (365 días / días del período)
       const apr = (totalProfit * 365) / days;
-      
-      // Aplicar factor de realismo basado en el período
-      let realisticAPR = apr;
-      
-      if (period === '30d') {
-        // Reducir APR de 30d para ser más conservador
-        realisticAPR = apr * 0.7; // 30% menos realista
-      } else if (period === '60d') {
-        // Reducir ligeramente APR de 60d
-        realisticAPR = apr * 0.85; // 15% menos realista
-      }
-      // 100d se mantiene sin reducción
-      
-      return Math.round(realisticAPR * 10) / 10; // Redondear a 1 decimal
+      bestAPR = Math.max(bestAPR, apr);
     }
   }
 
-  return 0;
+  return Math.round(bestAPR * 10) / 10; // Redondear a 1 decimal
 }
 
 function generateSimulatedTVL(pair, score) {
