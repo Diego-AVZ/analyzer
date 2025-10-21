@@ -263,9 +263,8 @@ function calculateAPR(metrics) {
   const periods = Object.keys(metrics);
   if (periods.length === 0) return 0;
 
-  // Priorizar períodos más largos para APR más realista
+  // Priorizar 100d como principal, luego 60d, y 30d como último recurso
   const periodPriority = ['100d', '60d', '30d'];
-  let bestAPR = 0;
   
   for (const period of periodPriority) {
     const metric = metrics[period];
@@ -278,18 +277,18 @@ function calculateAPR(metrics) {
       
       // Aplicar factor de realismo basado en el período
       if (period === '30d') {
-        apr = apr * 0.4; // 60% menos realista (datos muy recientes)
+        apr = apr * 0.5; // 50% menos realista (datos muy recientes)
       } else if (period === '60d') {
-        apr = apr * 0.7; // 30% menos realista
+        apr = apr * 0.8; // 20% menos realista
       }
       // 100d se mantiene sin reducción (más confiable)
       
-      bestAPR = Math.max(bestAPR, apr);
+      // Limitar APR máximo a 200% para ser más realista
+      return Math.round(Math.min(apr, 200) * 10) / 10;
     }
   }
 
-  // Limitar APR máximo a 200% para ser más realista
-  return Math.round(Math.min(bestAPR, 200) * 10) / 10;
+  return 0; // Si no hay datos válidos
 }
 
 function generateSimulatedTVL(pair, score) {
