@@ -283,8 +283,8 @@ function calculateAPR(metrics) {
       }
       // 100d se mantiene sin reducción (más confiable)
       
-      // Limitar APR máximo a 200% para ser más realista
-      return Math.round(Math.min(apr, 200) * 10) / 10;
+      // Sin límite artificial - el mercado puede ser muy volátil
+      return Math.round(apr * 10) / 10;
     }
   }
 
