@@ -12,8 +12,8 @@ class StrategyCache {
   }
 
   generateKey(params = {}) {
-    const { limit = 15, riskLevel = 'ALL', timePeriod = 'ALL', sortBy = 'APR' } = params;
-    return `strategy-bundles-${limit}-${riskLevel}-${timePeriod}-${sortBy}`;
+    const { limit = 15, riskLevel = 'ALL', timePeriod = 'ALL', sortBy = 'APR', strategyType = 'MAJOR' } = params;
+    return `strategy-bundles-${limit}-${riskLevel}-${timePeriod}-${sortBy}-${strategyType}`;
   }
 
   isValid(entry) {
