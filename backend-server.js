@@ -619,13 +619,14 @@ app.get('/api/strategy-bundles', async (req, res) => {
       limit = 15, 
       riskLevel = 'ALL', 
       timePeriod = 'ALL', 
-      sortBy = 'APR' 
+      sortBy = 'APR',
+      strategyType = 'MAJOR' // Nuevo parámetro: 'BTC_ETH' o 'MAJOR'
     } = req.query;
 
-    console.log(`🔍 Solicitud Strategy Bundles: limit=${limit}, risk=${riskLevel}, period=${timePeriod}, sort=${sortBy}`);
+    console.log(`🔍 Solicitud Strategy Bundles: limit=${limit}, risk=${riskLevel}, period=${timePeriod}, sort=${sortBy}, strategy=${strategyType}`);
 
     // Verificar cache primero
-    const cacheParams = { limit: parseInt(limit), riskLevel, timePeriod, sortBy };
+    const cacheParams = { limit: parseInt(limit), riskLevel, timePeriod, sortBy, strategyType };
     const cachedResult = strategyCache.get(cacheParams);
     
     if (cachedResult) {
@@ -635,7 +636,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
     console.log(`🔄 Cache MISS - Generando nuevos datos...`);
 
-    // Generar pares sistemáticos (BTC, ETH, LINK, SOL, BNB como LONG vs todos los demás)
+    // Generar pares sistemáticos según el tipo de estrategia
     const availableTokens = [
       'ETHUSDT', 'BTCUSDT', 'LINKUSDT', 'SOLUSDT', 'BNBUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
       'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
@@ -647,9 +648,30 @@ app.get('/api/strategy-bundles', async (req, res) => {
     // Tokens LONG principales
     const longTokens = ['BTCUSDT', 'ETHUSDT', 'LINKUSDT', 'SOLUSDT', 'BNBUSDT'];
     
-    // Generar pares para cada token LONG vs todos los demás
-    for (const longToken of longTokens) {
-      for (const token of availableTokens) {
+    // 🎯 FILTRO POR TIPO DE ESTRATEGIA
+    let targetLongTokens = [];
+    let targetShortTokens = [];
+    
+    if (strategyType === 'BTC_ETH') {
+      // Solo analizar contra BTC y ETH
+      targetLongTokens = ['BTCUSDT', 'ETHUSDT'];
+      targetShortTokens = ['BTCUSDT', 'ETHUSDT'];
+      console.log(`🎯 Modo BTC_ETH: Analizando solo contra BTC y ETH`);
+    } else if (strategyType === 'MAJOR') {
+      // Analizar con todos los tokens principales
+      targetLongTokens = longTokens;
+      targetShortTokens = availableTokens;
+      console.log(`🎯 Modo MAJOR: Analizando con todos los tokens principales`);
+    } else {
+      // Fallback a MAJOR si el tipo no es válido
+      targetLongTokens = longTokens;
+      targetShortTokens = availableTokens;
+      console.log(`⚠️ Tipo de estrategia inválido '${strategyType}', usando MAJOR por defecto`);
+    }
+    
+    // Generar pares según el tipo de estrategia
+    for (const longToken of targetLongTokens) {
+      for (const token of targetShortTokens) {
         if (token !== longToken) {
           systematicPairs.push({ longToken: longToken, shortToken: token });
         }
@@ -819,6 +841,15 @@ app.get('/api/strategy-bundles', async (req, res) => {
       totalAnalyzed: systematicPairs.length,
       totalFiltered: filteredResults.length,
       returned: resultsWithAPR.length,
+      strategyType: strategyType,
+      strategyInfo: {
+        type: strategyType,
+        description: strategyType === 'BTC_ETH' 
+          ? 'Análisis enfocado solo en BTC y ETH' 
+          : 'Análisis con todos los tokens principales',
+        longTokens: targetLongTokens,
+        shortTokens: targetShortTokens.slice(0, 5) // Mostrar solo los primeros 5 para no sobrecargar
+      },
       cacheInfo: {
         cached: false,
         generatedAt: new Date().toISOString()
