@@ -10,9 +10,9 @@ type AnalysisResult = AnalysisResponse;
 
 // Tokens disponibles basados en la configuración del backend
 const AVAILABLE_TOKENS = [
-  'ETHUSDT', 'BTCUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
+  'ETHUSDT', 'BTCUSDT', 'LINKUSDT', 'SOLUSDT', 'BNBUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
   'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
-  'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT', 'AAVEUSDT'
+  'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT'
 ];
 
 // Períodos de tiempo disponibles

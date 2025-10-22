@@ -635,26 +635,24 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
     console.log(`🔄 Cache MISS - Generando nuevos datos...`);
 
-    // Generar pares sistemáticos (BTC y ETH como LONG vs todos los demás)
+    // Generar pares sistemáticos (BTC, ETH, LINK, SOL, BNB como LONG vs todos los demás)
     const availableTokens = [
-      'ETHUSDT', 'BTCUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
+      'ETHUSDT', 'BTCUSDT', 'LINKUSDT', 'SOLUSDT', 'BNBUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
       'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
-      'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT'
+      'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT'
     ];
 
     const systematicPairs = [];
     
-    // BTC vs todos los demás
-    for (const token of availableTokens) {
-      if (token !== 'BTCUSDT') {
-        systematicPairs.push({ longToken: 'BTCUSDT', shortToken: token });
-      }
-    }
+    // Tokens LONG principales
+    const longTokens = ['BTCUSDT', 'ETHUSDT', 'LINKUSDT', 'SOLUSDT', 'BNBUSDT'];
     
-    // ETH vs todos los demás
-    for (const token of availableTokens) {
-      if (token !== 'ETHUSDT') {
-        systematicPairs.push({ longToken: 'ETHUSDT', shortToken: token });
+    // Generar pares para cada token LONG vs todos los demás
+    for (const longToken of longTokens) {
+      for (const token of availableTokens) {
+        if (token !== longToken) {
+          systematicPairs.push({ longToken: longToken, shortToken: token });
+        }
       }
     }
 
