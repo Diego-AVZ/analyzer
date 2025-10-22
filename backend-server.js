@@ -655,7 +655,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
     if (strategyType === 'BTC_ETH') {
       // Solo analizar contra BTC y ETH
       targetLongTokens = ['BTCUSDT', 'ETHUSDT'];
-      targetShortTokens = ['BTCUSDT', 'ETHUSDT'];
+      targetShortTokens = availableTokens;
       console.log(`🎯 Modo BTC_ETH: Analizando solo contra BTC y ETH`);
     } else if (strategyType === 'MAJOR') {
       // Analizar con todos los tokens principales
