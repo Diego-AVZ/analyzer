@@ -855,7 +855,14 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend ejecutándose en http://localhost:${PORT}`);
-  console.log(`📊 API disponible en http://localhost:${PORT}/api`);
-});
+// Para Vercel, no necesitamos app.listen()
+// Solo para desarrollo local
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor backend ejecutándose en http://localhost:${PORT}`);
+    console.log(`📊 API disponible en http://localhost:${PORT}/api`);
+  });
+}
+
+// Exportar para Vercel
+module.exports = app;
