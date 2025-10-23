@@ -145,61 +145,32 @@ class LongShortAnalyzer {
     generateRecommendation(stats) {
         let recommendation;
         let confidence = 0;
-        let strategyAdvice = '';
         // Evaluar la estrategia basada en win rate y profit promedio
         if (stats.winRate >= 60 && stats.averageDailyProfit >= 0.5) {
             recommendation = 'STRONG_BUY';
             confidence = Math.min(100, stats.winRate + stats.averageDailyProfit * 20);
-            strategyAdvice = `🔥 ESTRATEGIA MUY FUERTE: ${stats.winRate.toFixed(1)}% de días ganadores con ${stats.averageDailyProfit.toFixed(2)}% de ganancia promedio diaria.
-      Recomendación: Implementar estrategia con alta confianza.
-      Ganancia total esperada: ${stats.totalProfit.toFixed(2)}% en ${stats.validDays} días.`;
         }
         else if (stats.winRate >= 55 && stats.averageDailyProfit >= 0.2) {
             recommendation = 'BUY';
             confidence = Math.min(100, stats.winRate + stats.averageDailyProfit * 20);
-            strategyAdvice = `⚡ ESTRATEGIA BUENA: ${stats.winRate.toFixed(1)}% de días ganadores con ${stats.averageDailyProfit.toFixed(2)}% de ganancia promedio diaria.
-      Recomendación: Considerar implementar con gestión de riesgo adecuada.
-      Ganancia total esperada: ${stats.totalProfit.toFixed(2)}% en ${stats.validDays} días.`;
         }
         else if (stats.winRate >= 50 && stats.averageDailyProfit >= 0) {
             recommendation = 'HOLD';
             confidence = Math.min(100, stats.winRate + stats.averageDailyProfit * 20);
-            strategyAdvice = `📊 ESTRATEGIA NEUTRA: ${stats.winRate.toFixed(1)}% de días ganadores con ${stats.averageDailyProfit.toFixed(2)}% de ganancia promedio diaria.
-      Recomendación: Análisis adicional necesario antes de implementar.
-      Ganancia total esperada: ${stats.totalProfit.toFixed(2)}% en ${stats.validDays} días.`;
         }
         else if (stats.winRate >= 45) {
             recommendation = 'SELL';
             confidence = Math.min(100, 100 - stats.winRate + Math.abs(stats.averageDailyProfit) * 20);
-            strategyAdvice = `⚠️ ESTRATEGIA DÉBIL: Solo ${stats.winRate.toFixed(1)}% de días ganadores con ${stats.averageDailyProfit.toFixed(2)}% de ganancia promedio diaria.
-      Recomendación: No implementar esta estrategia.
-      Pérdida total esperada: ${stats.totalProfit.toFixed(2)}% en ${stats.validDays} días.`;
         }
         else {
             recommendation = 'STRONG_SELL';
             confidence = Math.min(100, 100 - stats.winRate + Math.abs(stats.averageDailyProfit) * 20);
-            strategyAdvice = `❌ ESTRATEGIA MUY DÉBIL: Solo ${stats.winRate.toFixed(1)}% de días ganadores con ${stats.averageDailyProfit.toFixed(2)}% de ganancia promedio diaria.
-      Recomendación: Evitar completamente esta estrategia.
-      Pérdida total esperada: ${stats.totalProfit.toFixed(2)}% en ${stats.validDays} días.`;
         }
-        // Añadir información adicional
-        strategyAdvice += `\n\n📈 MÉTRICAS ADICIONALES:
-    • Días ganadores: ${stats.winningDays}/${stats.validDays} (${stats.winRate.toFixed(1)}%)
-    • Días perdedores: ${stats.losingDays}/${stats.validDays} (${stats.lossRate.toFixed(1)}%)
-    • Ganancia máxima en un día: ${stats.maxSingleDayProfit.toFixed(2)}%
-    • Pérdida máxima en un día: ${stats.maxSingleDayLoss.toFixed(2)}%
-    • Máximo consecutivo ganador: ${stats.maxConsecutiveWinningDays} días
-    • Máximo consecutivo perdedor: ${stats.maxConsecutiveLosingDays} días
-    • Volatilidad de ganancias: ${stats.profitVolatility.toFixed(2)}%
-    • Sharpe ratio: ${stats.sharpeRatio.toFixed(2)}
-    • Máximo drawdown: ${stats.maxDrawdown.toFixed(2)}%
-    • Score consistencia: ${stats.consistencyScore.toFixed(1)}/100`;
         return {
             pair: `LONG ${stats.longToken}/SHORT ${stats.shortToken}`,
             stats,
             recommendation,
-            confidence,
-            strategyAdvice
+            confidence
         };
     }
     /**

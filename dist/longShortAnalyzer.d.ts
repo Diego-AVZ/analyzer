@@ -66,6 +66,5 @@ export interface LongShortAnalysisResult {
     stats: LongShortStats;
     recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG_SELL';
     confidence: number;
-    strategyAdvice: string;
 }
 //# sourceMappingURL=longShortAnalyzer.d.ts.map
