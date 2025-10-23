@@ -93,6 +93,10 @@ class LongShortAnalyzer {
         const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
         // Calcular consistencia (qué tan consistente es la estrategia)
         const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
+        const consecutiveWins = this.calculateConsecutiveDays(dailyProfits, 'WIN');
+        const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
+        const consecutivePercentageWins = this.calculateConsecutivePercentage(dailyProfits, 'WIN');
+        const consecutivePercentageLoss = this.calculateConsecutivePercentage(dailyProfits, 'LOSS');
         const stats = {
             longToken,
             shortToken,
@@ -116,8 +120,14 @@ class LongShortAnalyzer {
             sharpeRatio,
             maxDrawdown,
             consistencyScore,
-            dailyProfits
+            dailyProfits,
+            recommendation: 0,
+            consecutiveWins,
+            consecutiveLoss,
+            consecutivePercentageWins,
+            consecutivePercentageLoss
         };
+        stats.recommendation = this.calculateRecommendationScore(stats);
         console.log(`✅ Análisis completado para LONG ${longToken}/SHORT ${shortToken}: ${validDays} días válidos, ${winningDays} días ganadores (${winRate.toFixed(1)}%)`);
         return stats;
     }
@@ -193,6 +203,94 @@ class LongShortAnalyzer {
         const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
         const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - mean, 2), 0) / returns.length;
         return Math.sqrt(variance);
+    }
+    calculateConsecutiveDays(dailyProfits, direction) {
+        if (dailyProfits.length === 0)
+            return 0;
+        let consecutive = 0;
+        for (let i = dailyProfits.length - 1; i >= 0; i--) {
+            const profit = dailyProfits[i];
+            if (direction === 'WIN' && profit > 0) {
+                consecutive++;
+            }
+            else if (direction === 'LOSS' && profit < 0) {
+                consecutive++;
+            }
+            else {
+                break;
+            }
+        }
+        return consecutive;
+    }
+    calculateConsecutivePercentage(dailyProfits, direction) {
+        if (dailyProfits.length === 0)
+            return 0;
+        let totalPercentage = 0;
+        for (let i = dailyProfits.length - 1; i >= 0; i--) {
+            const profit = dailyProfits[i];
+            if (direction === 'WIN' && profit > 0) {
+                totalPercentage += profit;
+            }
+            else if (direction === 'LOSS' && profit < 0) {
+                totalPercentage += Math.abs(profit);
+            }
+            else {
+                break;
+            }
+        }
+        return totalPercentage;
+    }
+    calculateVolatilityScore(dailyProfits) {
+        if (dailyProfits.length < 10)
+            return 5;
+        const recentVolatility = this.calculateVolatility(dailyProfits.slice(-10));
+        const historicalVolatility = this.calculateVolatility(dailyProfits);
+        if (historicalVolatility === 0)
+            return 5;
+        const volatilityRatio = recentVolatility / historicalVolatility;
+        if (volatilityRatio > 1.5)
+            return 3;
+        if (volatilityRatio > 1.2)
+            return 4;
+        if (volatilityRatio < 0.7)
+            return 7;
+        if (volatilityRatio < 0.5)
+            return 8;
+        return 5;
+    }
+    calculateRecommendationScore(stats) {
+        const consecutiveWins = this.calculateConsecutiveDays(stats.dailyProfits, 'WIN');
+        const consecutiveLoss = this.calculateConsecutiveDays(stats.dailyProfits, 'LOSS');
+        const consecutivePercentageWins = this.calculateConsecutivePercentage(stats.dailyProfits, 'WIN');
+        const consecutivePercentageLoss = this.calculateConsecutivePercentage(stats.dailyProfits, 'LOSS');
+        const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
+        let score = 5;
+        if (consecutiveLoss >= 3) {
+            score += 2;
+        }
+        else if (consecutiveLoss >= 2) {
+            score += 1;
+        }
+        if (consecutiveWins >= 4) {
+            score -= 1;
+        }
+        else if (consecutiveWins >= 2) {
+            score -= 0.5;
+        }
+        if (consecutivePercentageLoss >= 5) {
+            score += 1.5;
+        }
+        else if (consecutivePercentageLoss >= 3) {
+            score += 1;
+        }
+        if (consecutivePercentageWins >= 4) {
+            score -= 1;
+        }
+        else if (consecutivePercentageWins >= 2) {
+            score -= 0.5;
+        }
+        score += (volatilityScore - 5) * 0.3;
+        return Math.max(0, Math.min(10, Math.round(score * 10) / 10));
     }
     calculateMaxDrawdown(returns) {
         let maxDrawdown = 0;
