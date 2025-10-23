@@ -116,6 +116,7 @@ export class LongShortAnalyzer {
     const currentConsecutiveLoss = this.calculateCurrentConsecutiveDays(dailyProfits, 'LOSS');
     const currentConsecutivePercentageWins = this.calculateCurrentConsecutivePercentage(dailyProfits, 'WIN');
     const currentConsecutivePercentageLoss = this.calculateCurrentConsecutivePercentage(dailyProfits, 'LOSS');
+    const rsi = this.calculateRSI(dailyProfits);
 
     const stats: LongShortStats = {
       longToken,
@@ -149,7 +150,8 @@ export class LongShortAnalyzer {
       currentConsecutiveWins,
       currentConsecutiveLoss,
       currentConsecutivePercentageWins,
-      currentConsecutivePercentageLoss
+      currentConsecutivePercentageLoss,
+      rsi
     };
 
     stats.recommendation = this.calculateRecommendationScore(stats);
@@ -296,6 +298,45 @@ export class LongShortAnalyzer {
     return 5;
   }
 
+  private calculateRSI(prices: number[], period: number = 14): number {
+    if (prices.length < period + 1) return 50;
+    
+    let gains = 0;
+    let losses = 0;
+    
+    for (let i = prices.length - period; i < prices.length; i++) {
+      const change = prices[i] - prices[i - 1];
+      if (change > 0) {
+        gains += change;
+      } else {
+        losses += Math.abs(change);
+      }
+    }
+    
+    const avgGain = gains / period;
+    const avgLoss = losses / period;
+    
+    if (avgLoss === 0) return 100;
+    
+    const rs = avgGain / avgLoss;
+    const rsi = 100 - (100 / (1 + rs));
+    
+    return rsi;
+  }
+
+  private calculateRSIScore(dailyProfits: number[]): number {
+    if (dailyProfits.length < 15) return 5;
+    
+    const rsi = this.calculateRSI(dailyProfits);
+    
+    if (rsi <= 30) return 8;
+    if (rsi <= 40) return 7;
+    if (rsi >= 70) return 2;
+    if (rsi >= 60) return 3;
+    if (rsi >= 50) return 5; 
+    return 6; 
+  }
+
   private calculateRecommendationScore(stats: LongShortStats): number {
     const currentConsecutiveWins = stats.currentConsecutiveWins;
     const currentConsecutiveLoss = stats.currentConsecutiveLoss;
@@ -307,7 +348,6 @@ export class LongShortAnalyzer {
     
     let score = 5;
     
-    // Penalización por estrategias con mal rendimiento histórico
     if (stats.winRate < 45) {
       score -= 3;
     } else if (stats.winRate < 50) {
@@ -316,7 +356,6 @@ export class LongShortAnalyzer {
       score -= 1;
     }
     
-    // Bonificación por estrategias con buen rendimiento histórico
     if (stats.winRate >= 60) {
       score += 1;
     } else if (stats.winRate >= 55) {
@@ -374,6 +413,9 @@ export class LongShortAnalyzer {
     }
     
     score += (volatilityScore - 5) * 0.3;
+    
+    const rsiScore = this.calculateRSIScore(stats.dailyProfits);
+    score += (rsiScore - 5) * 0.4;
     
     return Math.max(0, Math.min(10, Math.round(score * 10) / 10));
   }
@@ -443,6 +485,7 @@ export interface LongShortStats {
   currentConsecutiveLoss: number;
   currentConsecutivePercentageWins: number;
   currentConsecutivePercentageLoss: number;
+  rsi: number;
 }
 
 export interface LongShortAnalysisResult {

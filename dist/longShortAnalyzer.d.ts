@@ -20,6 +20,8 @@ export declare class LongShortAnalyzer {
     private calculateCurrentConsecutiveDays;
     private calculateCurrentConsecutivePercentage;
     private calculateVolatilityScore;
+    private calculateRSI;
+    private calculateRSIScore;
     private calculateRecommendationScore;
     private calculateMaxDrawdown;
     private calculateConsistencyScore;
@@ -60,6 +62,7 @@ export interface LongShortStats {
     currentConsecutiveLoss: number;
     currentConsecutivePercentageWins: number;
     currentConsecutivePercentageLoss: number;
+    rsi: number;
 }
 export interface LongShortAnalysisResult {
     pair: string;

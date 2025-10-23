@@ -101,6 +101,7 @@ class LongShortAnalyzer {
         const currentConsecutiveLoss = this.calculateCurrentConsecutiveDays(dailyProfits, 'LOSS');
         const currentConsecutivePercentageWins = this.calculateCurrentConsecutivePercentage(dailyProfits, 'WIN');
         const currentConsecutivePercentageLoss = this.calculateCurrentConsecutivePercentage(dailyProfits, 'LOSS');
+        const rsi = this.calculateRSI(dailyProfits);
         const stats = {
             longToken,
             shortToken,
@@ -133,7 +134,8 @@ class LongShortAnalyzer {
             currentConsecutiveWins,
             currentConsecutiveLoss,
             currentConsecutivePercentageWins,
-            currentConsecutivePercentageLoss
+            currentConsecutivePercentageLoss,
+            rsi
         };
         stats.recommendation = this.calculateRecommendationScore(stats);
         console.log(`✅ Análisis completado para LONG ${longToken}/SHORT ${shortToken}: ${validDays} días válidos, ${winningDays} días ganadores (${winRate.toFixed(1)}%)`);
@@ -279,6 +281,44 @@ class LongShortAnalyzer {
             return 8;
         return 5;
     }
+    calculateRSI(prices, period = 14) {
+        if (prices.length < period + 1)
+            return 50;
+        let gains = 0;
+        let losses = 0;
+        for (let i = prices.length - period; i < prices.length; i++) {
+            const change = prices[i] - prices[i - 1];
+            if (change > 0) {
+                gains += change;
+            }
+            else {
+                losses += Math.abs(change);
+            }
+        }
+        const avgGain = gains / period;
+        const avgLoss = losses / period;
+        if (avgLoss === 0)
+            return 100;
+        const rs = avgGain / avgLoss;
+        const rsi = 100 - (100 / (1 + rs));
+        return rsi;
+    }
+    calculateRSIScore(dailyProfits) {
+        if (dailyProfits.length < 15)
+            return 5;
+        const rsi = this.calculateRSI(dailyProfits);
+        if (rsi <= 30)
+            return 8; // Sobreventa - buen momento para comprar
+        if (rsi <= 40)
+            return 7;
+        if (rsi >= 70)
+            return 2; // Sobrecompra - mal momento para comprar
+        if (rsi >= 60)
+            return 3;
+        if (rsi >= 50)
+            return 5; // Neutral
+        return 6; // Entre 40-50, ligeramente favorable
+    }
     calculateRecommendationScore(stats) {
         const currentConsecutiveWins = stats.currentConsecutiveWins;
         const currentConsecutiveLoss = stats.currentConsecutiveLoss;
@@ -288,7 +328,6 @@ class LongShortAnalyzer {
         const consecutivePercentageWins = stats.consecutivePercentageWins;
         const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
         let score = 5;
-        // Penalización por estrategias con mal rendimiento histórico
         if (stats.winRate < 45) {
             score -= 3;
         }
@@ -298,7 +337,6 @@ class LongShortAnalyzer {
         else if (stats.winRate < 55) {
             score -= 1;
         }
-        // Bonificación por estrategias con buen rendimiento histórico
         if (stats.winRate >= 60) {
             score += 1;
         }
@@ -357,6 +395,8 @@ class LongShortAnalyzer {
             score += 1;
         }
         score += (volatilityScore - 5) * 0.3;
+        const rsiScore = this.calculateRSIScore(stats.dailyProfits);
+        score += (rsiScore - 5) * 0.4;
         return Math.max(0, Math.min(10, Math.round(score * 10) / 10));
     }
     calculateMaxDrawdown(returns) {
