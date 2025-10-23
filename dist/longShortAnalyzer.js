@@ -298,6 +298,13 @@ class LongShortAnalyzer {
         else if (stats.winRate < 55) {
             score -= 1;
         }
+        // Bonificación por estrategias con buen rendimiento histórico
+        if (stats.winRate >= 60) {
+            score += 1;
+        }
+        else if (stats.winRate >= 55) {
+            score += 0.5;
+        }
         if (stats.totalProfit < -20) {
             score -= 2;
         }
@@ -306,6 +313,13 @@ class LongShortAnalyzer {
         }
         else if (stats.totalProfit < 0) {
             score -= 0.5;
+        }
+        // Bonificación por profit positivo
+        if (stats.totalProfit >= 50) {
+            score += 1;
+        }
+        else if (stats.totalProfit >= 20) {
+            score += 0.5;
         }
         if (currentConsecutiveLoss >= 3) {
             score += 2;
