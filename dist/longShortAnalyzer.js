@@ -97,6 +97,10 @@ class LongShortAnalyzer {
         const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
         const consecutivePercentageWins = this.calculateConsecutivePercentage(dailyProfits, 'WIN');
         const consecutivePercentageLoss = this.calculateConsecutivePercentage(dailyProfits, 'LOSS');
+        const currentConsecutiveWins = this.calculateCurrentConsecutiveDays(dailyProfits, 'WIN');
+        const currentConsecutiveLoss = this.calculateCurrentConsecutiveDays(dailyProfits, 'LOSS');
+        const currentConsecutivePercentageWins = this.calculateCurrentConsecutivePercentage(dailyProfits, 'WIN');
+        const currentConsecutivePercentageLoss = this.calculateCurrentConsecutivePercentage(dailyProfits, 'LOSS');
         const stats = {
             longToken,
             shortToken,
@@ -125,7 +129,11 @@ class LongShortAnalyzer {
             consecutiveWins,
             consecutiveLoss,
             consecutivePercentageWins,
-            consecutivePercentageLoss
+            consecutivePercentageLoss,
+            currentConsecutiveWins,
+            currentConsecutiveLoss,
+            currentConsecutivePercentageWins,
+            currentConsecutivePercentageLoss
         };
         stats.recommendation = this.calculateRecommendationScore(stats);
         console.log(`✅ Análisis completado para LONG ${longToken}/SHORT ${shortToken}: ${validDays} días válidos, ${winningDays} días ganadores (${winRate.toFixed(1)}%)`);
@@ -207,6 +215,48 @@ class LongShortAnalyzer {
     calculateConsecutiveDays(dailyProfits, direction) {
         if (dailyProfits.length === 0)
             return 0;
+        let maxConsecutive = 0;
+        let currentConsecutive = 0;
+        for (let i = 0; i < dailyProfits.length; i++) {
+            const profit = dailyProfits[i];
+            if (direction === 'WIN' && profit > 0) {
+                currentConsecutive++;
+                maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+            }
+            else if (direction === 'LOSS' && profit < 0) {
+                currentConsecutive++;
+                maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+            }
+            else {
+                currentConsecutive = 0;
+            }
+        }
+        return maxConsecutive;
+    }
+    calculateConsecutivePercentage(dailyProfits, direction) {
+        if (dailyProfits.length === 0)
+            return 0;
+        let maxPercentage = 0;
+        let currentPercentage = 0;
+        for (let i = 0; i < dailyProfits.length; i++) {
+            const profit = dailyProfits[i];
+            if (direction === 'WIN' && profit > 0) {
+                currentPercentage += profit;
+                maxPercentage = Math.max(maxPercentage, currentPercentage);
+            }
+            else if (direction === 'LOSS' && profit < 0) {
+                currentPercentage += Math.abs(profit);
+                maxPercentage = Math.max(maxPercentage, currentPercentage);
+            }
+            else {
+                currentPercentage = 0;
+            }
+        }
+        return maxPercentage;
+    }
+    calculateCurrentConsecutiveDays(dailyProfits, direction) {
+        if (dailyProfits.length === 0)
+            return 0;
         let consecutive = 0;
         for (let i = dailyProfits.length - 1; i >= 0; i--) {
             const profit = dailyProfits[i];
@@ -222,7 +272,7 @@ class LongShortAnalyzer {
         }
         return consecutive;
     }
-    calculateConsecutivePercentage(dailyProfits, direction) {
+    calculateCurrentConsecutivePercentage(dailyProfits, direction) {
         if (dailyProfits.length === 0)
             return 0;
         let totalPercentage = 0;
@@ -259,35 +309,48 @@ class LongShortAnalyzer {
         return 5;
     }
     calculateRecommendationScore(stats) {
-        const consecutiveWins = this.calculateConsecutiveDays(stats.dailyProfits, 'WIN');
-        const consecutiveLoss = this.calculateConsecutiveDays(stats.dailyProfits, 'LOSS');
-        const consecutivePercentageWins = this.calculateConsecutivePercentage(stats.dailyProfits, 'WIN');
-        const consecutivePercentageLoss = this.calculateConsecutivePercentage(stats.dailyProfits, 'LOSS');
+        const currentConsecutiveWins = stats.currentConsecutiveWins;
+        const currentConsecutiveLoss = stats.currentConsecutiveLoss;
+        const currentConsecutivePercentageWins = stats.currentConsecutivePercentageWins;
+        const currentConsecutivePercentageLoss = stats.currentConsecutivePercentageLoss;
+        const consecutiveWins = stats.consecutiveWins;
+        const consecutivePercentageWins = stats.consecutivePercentageWins;
         const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
         let score = 5;
-        if (consecutiveLoss >= 3) {
+        if (currentConsecutiveLoss >= 3) {
             score += 2;
         }
-        else if (consecutiveLoss >= 2) {
+        else if (currentConsecutiveLoss >= 2) {
             score += 1;
         }
-        if (consecutiveWins >= 4) {
-            score -= 1;
-        }
-        else if (consecutiveWins >= 2) {
-            score -= 0.5;
-        }
-        if (consecutivePercentageLoss >= 5) {
+        if (currentConsecutivePercentageLoss >= 5) {
             score += 1.5;
         }
-        else if (consecutivePercentageLoss >= 3) {
+        else if (currentConsecutivePercentageLoss >= 3) {
             score += 1;
         }
-        if (consecutivePercentageWins >= 4) {
+        const winProgress = consecutiveWins > 0 ? currentConsecutiveWins / consecutiveWins : 0;
+        const percentageProgress = consecutivePercentageWins > 0 ? currentConsecutivePercentageWins / consecutivePercentageWins : 0;
+        if (winProgress >= 0.8) {
+            score -= 2;
+        }
+        else if (winProgress >= 0.6) {
             score -= 1;
         }
-        else if (consecutivePercentageWins >= 2) {
+        else if (winProgress >= 0.4) {
             score -= 0.5;
+        }
+        if (percentageProgress >= 0.8) {
+            score -= 1.5;
+        }
+        else if (percentageProgress >= 0.6) {
+            score -= 1;
+        }
+        else if (percentageProgress >= 0.4) {
+            score -= 0.5;
+        }
+        if (winProgress < 0.3 && percentageProgress < 0.3) {
+            score += 1;
         }
         score += (volatilityScore - 5) * 0.3;
         return Math.max(0, Math.min(10, Math.round(score * 10) / 10));

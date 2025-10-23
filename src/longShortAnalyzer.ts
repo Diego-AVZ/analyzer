@@ -331,6 +331,8 @@ export class LongShortAnalyzer {
     const currentConsecutiveLoss = stats.currentConsecutiveLoss;
     const currentConsecutivePercentageWins = stats.currentConsecutivePercentageWins;
     const currentConsecutivePercentageLoss = stats.currentConsecutivePercentageLoss;
+    const consecutiveWins = stats.consecutiveWins;
+    const consecutivePercentageWins = stats.consecutivePercentageWins;
     const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
     
     let score = 5;
@@ -341,22 +343,33 @@ export class LongShortAnalyzer {
       score += 1;
     }
     
-    if (currentConsecutiveWins >= 4) {
-      score -= 1;
-    } else if (currentConsecutiveWins >= 2) {
-      score -= 0.5;
-    }
-    
     if (currentConsecutivePercentageLoss >= 5) {
       score += 1.5;
     } else if (currentConsecutivePercentageLoss >= 3) {
       score += 1;
     }
     
-    if (currentConsecutivePercentageWins >= 4) {
+    const winProgress = consecutiveWins > 0 ? currentConsecutiveWins / consecutiveWins : 0;
+    const percentageProgress = consecutivePercentageWins > 0 ? currentConsecutivePercentageWins / consecutivePercentageWins : 0;
+    
+    if (winProgress >= 0.8) {
+      score -= 2;
+    } else if (winProgress >= 0.6) {
       score -= 1;
-    } else if (currentConsecutivePercentageWins >= 2) {
+    } else if (winProgress >= 0.4) {
       score -= 0.5;
+    }
+    
+    if (percentageProgress >= 0.8) {
+      score -= 1.5;
+    } else if (percentageProgress >= 0.6) {
+      score -= 1;
+    } else if (percentageProgress >= 0.4) {
+      score -= 0.5;
+    }
+    
+    if (winProgress < 0.3 && percentageProgress < 0.3) {
+      score += 1;
     }
     
     score += (volatilityScore - 5) * 0.3;
