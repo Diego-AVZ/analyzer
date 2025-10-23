@@ -112,6 +112,10 @@ export class LongShortAnalyzer {
     const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
     const consecutivePercentageWins = this.calculateConsecutivePercentage(dailyProfits, 'WIN');
     const consecutivePercentageLoss = this.calculateConsecutivePercentage(dailyProfits, 'LOSS');
+    const currentConsecutiveWins = this.calculateCurrentConsecutiveDays(dailyProfits, 'WIN');
+    const currentConsecutiveLoss = this.calculateCurrentConsecutiveDays(dailyProfits, 'LOSS');
+    const currentConsecutivePercentageWins = this.calculateCurrentConsecutivePercentage(dailyProfits, 'WIN');
+    const currentConsecutivePercentageLoss = this.calculateCurrentConsecutivePercentage(dailyProfits, 'LOSS');
 
     const stats: LongShortStats = {
       longToken,
@@ -141,7 +145,11 @@ export class LongShortAnalyzer {
       consecutiveWins,
       consecutiveLoss,
       consecutivePercentageWins,
-      consecutivePercentageLoss
+      consecutivePercentageLoss,
+      currentConsecutiveWins,
+      currentConsecutiveLoss,
+      currentConsecutivePercentageWins,
+      currentConsecutivePercentageLoss
     };
 
     stats.recommendation = this.calculateRecommendationScore(stats);
@@ -228,6 +236,48 @@ export class LongShortAnalyzer {
   private calculateConsecutiveDays(dailyProfits: number[], direction: 'WIN' | 'LOSS'): number {
     if (dailyProfits.length === 0) return 0;
     
+    let maxConsecutive = 0;
+    let currentConsecutive = 0;
+    
+    for (let i = 0; i < dailyProfits.length; i++) {
+      const profit = dailyProfits[i];
+      if (direction === 'WIN' && profit > 0) {
+        currentConsecutive++;
+        maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+      } else if (direction === 'LOSS' && profit < 0) {
+        currentConsecutive++;
+        maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+      } else {
+        currentConsecutive = 0;
+      }
+    }
+    return maxConsecutive;
+  }
+
+  private calculateConsecutivePercentage(dailyProfits: number[], direction: 'WIN' | 'LOSS'): number {
+    if (dailyProfits.length === 0) return 0;
+    
+    let maxPercentage = 0;
+    let currentPercentage = 0;
+    
+    for (let i = 0; i < dailyProfits.length; i++) {
+      const profit = dailyProfits[i];
+      if (direction === 'WIN' && profit > 0) {
+        currentPercentage += profit;
+        maxPercentage = Math.max(maxPercentage, currentPercentage);
+      } else if (direction === 'LOSS' && profit < 0) {
+        currentPercentage += Math.abs(profit);
+        maxPercentage = Math.max(maxPercentage, currentPercentage);
+      } else {
+        currentPercentage = 0;
+      }
+    }
+    return maxPercentage;
+  }
+
+  private calculateCurrentConsecutiveDays(dailyProfits: number[], direction: 'WIN' | 'LOSS'): number {
+    if (dailyProfits.length === 0) return 0;
+    
     let consecutive = 0;
     for (let i = dailyProfits.length - 1; i >= 0; i--) {
       const profit = dailyProfits[i];
@@ -242,7 +292,7 @@ export class LongShortAnalyzer {
     return consecutive;
   }
 
-  private calculateConsecutivePercentage(dailyProfits: number[], direction: 'WIN' | 'LOSS'): number {
+  private calculateCurrentConsecutivePercentage(dailyProfits: number[], direction: 'WIN' | 'LOSS'): number {
     if (dailyProfits.length === 0) return 0;
     
     let totalPercentage = 0;
@@ -277,35 +327,35 @@ export class LongShortAnalyzer {
   }
 
   private calculateRecommendationScore(stats: LongShortStats): number {
-    const consecutiveWins = this.calculateConsecutiveDays(stats.dailyProfits, 'WIN');
-    const consecutiveLoss = this.calculateConsecutiveDays(stats.dailyProfits, 'LOSS');
-    const consecutivePercentageWins = this.calculateConsecutivePercentage(stats.dailyProfits, 'WIN');
-    const consecutivePercentageLoss = this.calculateConsecutivePercentage(stats.dailyProfits, 'LOSS');
+    const currentConsecutiveWins = stats.currentConsecutiveWins;
+    const currentConsecutiveLoss = stats.currentConsecutiveLoss;
+    const currentConsecutivePercentageWins = stats.currentConsecutivePercentageWins;
+    const currentConsecutivePercentageLoss = stats.currentConsecutivePercentageLoss;
     const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
     
     let score = 5;
     
-    if (consecutiveLoss >= 3) {
+    if (currentConsecutiveLoss >= 3) {
       score += 2;
-    } else if (consecutiveLoss >= 2) {
+    } else if (currentConsecutiveLoss >= 2) {
       score += 1;
     }
     
-    if (consecutiveWins >= 4) {
+    if (currentConsecutiveWins >= 4) {
       score -= 1;
-    } else if (consecutiveWins >= 2) {
+    } else if (currentConsecutiveWins >= 2) {
       score -= 0.5;
     }
     
-    if (consecutivePercentageLoss >= 5) {
+    if (currentConsecutivePercentageLoss >= 5) {
       score += 1.5;
-    } else if (consecutivePercentageLoss >= 3) {
+    } else if (currentConsecutivePercentageLoss >= 3) {
       score += 1;
     }
     
-    if (consecutivePercentageWins >= 4) {
+    if (currentConsecutivePercentageWins >= 4) {
       score -= 1;
-    } else if (consecutivePercentageWins >= 2) {
+    } else if (currentConsecutivePercentageWins >= 2) {
       score -= 0.5;
     }
     
@@ -375,6 +425,10 @@ export interface LongShortStats {
   consecutiveLoss: number;
   consecutivePercentageWins: number;
   consecutivePercentageLoss: number;
+  currentConsecutiveWins: number;
+  currentConsecutiveLoss: number;
+  currentConsecutivePercentageWins: number;
+  currentConsecutivePercentageLoss: number;
 }
 
 export interface LongShortAnalysisResult {
