@@ -288,6 +288,25 @@ class LongShortAnalyzer {
         const consecutivePercentageWins = stats.consecutivePercentageWins;
         const volatilityScore = this.calculateVolatilityScore(stats.dailyProfits);
         let score = 5;
+        // Penalización por estrategias con mal rendimiento histórico
+        if (stats.winRate < 45) {
+            score -= 3;
+        }
+        else if (stats.winRate < 50) {
+            score -= 2;
+        }
+        else if (stats.winRate < 55) {
+            score -= 1;
+        }
+        if (stats.totalProfit < -20) {
+            score -= 2;
+        }
+        else if (stats.totalProfit < -10) {
+            score -= 1;
+        }
+        else if (stats.totalProfit < 0) {
+            score -= 0.5;
+        }
         if (currentConsecutiveLoss >= 3) {
             score += 2;
         }
