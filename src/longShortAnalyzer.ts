@@ -298,14 +298,14 @@ export class LongShortAnalyzer {
     return 5;
   }
 
-  private calculateRSI(prices: number[], period: number = 14): number {
-    if (prices.length < period + 1) return 50;
+  private calculateRSI(dailyProfits: number[], period: number = 14): number {
+    if (dailyProfits.length < period + 1) return 50;
     
     let gains = 0;
     let losses = 0;
     
-    for (let i = prices.length - period; i < prices.length; i++) {
-      const change = prices[i] - prices[i - 1];
+    for (let i = dailyProfits.length - period; i < dailyProfits.length; i++) {
+      const change = dailyProfits[i];
       if (change > 0) {
         gains += change;
       } else {
@@ -317,6 +317,7 @@ export class LongShortAnalyzer {
     const avgLoss = losses / period;
     
     if (avgLoss === 0) return 100;
+    if (avgGain === 0) return 0;
     
     const rs = avgGain / avgLoss;
     const rsi = 100 - (100 / (1 + rs));

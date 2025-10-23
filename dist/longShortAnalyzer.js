@@ -281,13 +281,13 @@ class LongShortAnalyzer {
             return 8;
         return 5;
     }
-    calculateRSI(prices, period = 14) {
-        if (prices.length < period + 1)
+    calculateRSI(dailyProfits, period = 14) {
+        if (dailyProfits.length < period + 1)
             return 50;
         let gains = 0;
         let losses = 0;
-        for (let i = prices.length - period; i < prices.length; i++) {
-            const change = prices[i] - prices[i - 1];
+        for (let i = dailyProfits.length - period; i < dailyProfits.length; i++) {
+            const change = dailyProfits[i];
             if (change > 0) {
                 gains += change;
             }
@@ -299,6 +299,8 @@ class LongShortAnalyzer {
         const avgLoss = losses / period;
         if (avgLoss === 0)
             return 100;
+        if (avgGain === 0)
+            return 0;
         const rs = avgGain / avgLoss;
         const rsi = 100 - (100 / (1 + rs));
         return rsi;
@@ -308,16 +310,16 @@ class LongShortAnalyzer {
             return 5;
         const rsi = this.calculateRSI(dailyProfits);
         if (rsi <= 30)
-            return 8; // Sobreventa - buen momento para comprar
+            return 8;
         if (rsi <= 40)
             return 7;
         if (rsi >= 70)
-            return 2; // Sobrecompra - mal momento para comprar
+            return 2;
         if (rsi >= 60)
             return 3;
         if (rsi >= 50)
-            return 5; // Neutral
-        return 6; // Entre 40-50, ligeramente favorable
+            return 5;
+        return 6;
     }
     calculateRecommendationScore(stats) {
         const currentConsecutiveWins = stats.currentConsecutiveWins;
