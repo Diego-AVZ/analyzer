@@ -174,8 +174,7 @@ class BinanceCorrelationAnalyzer {
                     pair: `LONG ${strategy.longToken}/SHORT ${strategy.shortToken}`,
                     stats: {},
                     recommendation: 'SELL',
-                    confidence: 0,
-                    strategyAdvice: `Error en el análisis: ${error}`
+                    confidence: 0
                 });
             }
         });

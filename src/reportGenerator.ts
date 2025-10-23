@@ -92,7 +92,7 @@ export class ReportGenerator {
         console.log(`      • Score consistencia: ${stats.consistencyScore.toFixed(1)}/100`);
       }
       
-      console.log(`   💡 Estrategia: ${result.strategyAdvice.split('\n')[0]}`);
+      console.log(`   💡 Recomendación: ${result.recommendation} (${result.confidence.toFixed(1)}% confianza)`);
     });
   }
 
@@ -168,8 +168,7 @@ export class ReportGenerator {
         pair: result.pair,
         recommendation: result.recommendation,
         confidence: result.confidence,
-        stats: result.stats,
-        strategyAdvice: result.strategyAdvice
+        stats: result.stats
       }))
     };
     
