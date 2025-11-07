@@ -528,6 +528,117 @@ app.get('/api/tokens', (req, res) => {
   res.json(tokens);
 });
 
+app.get('/api/long-short-history', async (req, res) => {
+  try {
+    const { longToken, shortToken, timePeriod = 100 } = req.query;
+    
+    if (!longToken || !shortToken) {
+      return res.status(400).json({ 
+        error: 'Se requieren longToken y shortToken como parámetros de consulta' 
+      });
+    }
+
+    if (longToken === shortToken) {
+      return res.status(400).json({ 
+        error: 'Los tokens Long y Short deben ser diferentes' 
+      });
+    }
+
+    const binanceService = new BinanceService(
+      'https://api.binance.com/api/v3/klines',
+      '1d',
+      parseInt(timePeriod) || 100
+    );
+    
+    const longTokenUpper = longToken.toUpperCase();
+    const shortTokenUpper = shortToken.toUpperCase();
+    
+    // Asegurar que los tokens tengan el sufijo USDT si no lo tienen
+    const longTokenSymbol = longTokenUpper.endsWith('USDT') ? longTokenUpper : `${longTokenUpper}USDT`;
+    const shortTokenSymbol = shortTokenUpper.endsWith('USDT') ? shortTokenUpper : `${shortTokenUpper}USDT`;
+
+    const longTokenData = await binanceService.getKlines(longTokenSymbol);
+    const shortTokenData = await binanceService.getKlines(shortTokenSymbol);
+
+    if (!longTokenData.success || !shortTokenData.success) {
+      return res.status(500).json({ 
+        error: 'Error obteniendo datos de Binance',
+        details: longTokenData.error || shortTokenData.error
+      });
+    }
+
+    const longKlines = binanceService.processKlines(longTokenData.data);
+    const shortKlines = binanceService.processKlines(shortTokenData.data);
+
+    if (!binanceService.validateKlines(longKlines) || !binanceService.validateKlines(shortKlines)) {
+      return res.status(500).json({ 
+        error: 'Datos inválidos obtenidos de Binance' 
+      });
+    }
+
+    const filteredLongKlines = binanceService.filterValidDays(longKlines);
+    const filteredShortKlines = binanceService.filterValidDays(shortKlines);
+
+    const { synchronizedA, synchronizedB } = binanceService.synchronizeTimestamps(
+      filteredLongKlines, 
+      filteredShortKlines
+    );
+
+    if (synchronizedA.length === 0) {
+      return res.status(500).json({ 
+        error: 'No se encontraron datos sincronizados entre los tokens' 
+      });
+    }
+
+    // Calcular el ratio longToken/shortToken para cada vela
+    const ratioKlines = synchronizedA.map((longKline, index) => {
+      const shortKline = synchronizedB[index];
+      
+      // Calcular ratios: longToken / shortToken
+      const openRatio = shortKline.open !== 0 ? (longKline.open / shortKline.open) : 0;
+      const highRatio = shortKline.high !== 0 ? (longKline.high / shortKline.high) : 0;
+      const lowRatio = shortKline.low !== 0 ? (longKline.low / shortKline.low) : 0;
+      const closeRatio = shortKline.close !== 0 ? (longKline.close / shortKline.close) : 0;
+      
+      // Calcular volumen combinado (promedio de ambos)
+      const volumeRatio = (longKline.volume + shortKline.volume) / 2;
+      
+      // Crear BinanceKline con el formato correcto
+      const ratioKline = [
+        longKline.timestamp,                    // 0: Open time
+        openRatio.toFixed(8),                   // 1: Open (ratio)
+        highRatio.toFixed(8),                   // 2: High (ratio)
+        lowRatio.toFixed(8),                    // 3: Low (ratio)
+        closeRatio.toFixed(8),                  // 4: Close (ratio)
+        volumeRatio.toFixed(8),                 // 5: Volume (promedio)
+        longKline.timestamp + 86400000 - 1,      // 6: Close time (24h - 1ms)
+        volumeRatio.toFixed(8),                 // 7: Quote asset volume
+        0,                                       // 8: Number of trades (no disponible)
+        (volumeRatio * 0.5).toFixed(8),         // 9: Taker buy base asset volume (estimado)
+        (volumeRatio * 0.5).toFixed(8),         // 10: Taker buy quote asset volume (estimado)
+        '0'                                      // 11: Ignore
+      ];
+      
+      return ratioKline;
+    });
+
+    res.json({
+      success: true,
+      symbol: `${longTokenSymbol}/${shortTokenSymbol}`,
+      longToken: longTokenSymbol,
+      shortToken: shortTokenSymbol,
+      data: ratioKlines,
+      count: ratioKlines.length
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
+  }
+});
+
 app.get('/api/strategy-bundles', async (req, res) => {
   try {
     const { 
