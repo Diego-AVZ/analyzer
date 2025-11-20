@@ -189,27 +189,33 @@ const LiquidityRangeCalculator: React.FC = () => {
 
           {/* Precios actuales y rangos */}
           <div className="price-info">
-            <h3>💰 Precios Actuales y Rangos</h3>
+            <h3>💰 Precios Actuales y Rango de Liquidez</h3>
             <div className="price-grid">
               <div className="price-card">
                 <h4>{tokenA}</h4>
                 <div className="current-price">${analysisResult.currentPriceA.toFixed(2)}</div>
-                <div className="price-range">
-                  <span className="range-label">Rango:</span>
-                  <span className="range-values">
-                    ${analysisResult.rangeA.min.toFixed(2)} - ${analysisResult.rangeA.max.toFixed(2)}
-                  </span>
-                </div>
               </div>
               
               <div className="price-card">
                 <h4>{tokenB}</h4>
                 <div className="current-price">${analysisResult.currentPriceB.toFixed(2)}</div>
+              </div>
+            </div>
+            
+            <div className="ratio-info" style={{ marginTop: '20px' }}>
+              <div className="price-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <h4>Ratio de Precios ({tokenA}/{tokenB})</h4>
+                <div className="current-price" style={{ fontSize: '1.5em', marginBottom: '10px' }}>
+                  {analysisResult.currentPriceRatio.toFixed(6)}
+                </div>
                 <div className="price-range">
-                  <span className="range-label">Rango:</span>
+                  <span className="range-label">Rango de liquidez Uniswap V3:</span>
                   <span className="range-values">
-                    ${analysisResult.rangeB.min.toFixed(2)} - ${analysisResult.rangeB.max.toFixed(2)}
+                    {analysisResult.priceRatioRange.min.toFixed(6)} - {analysisResult.priceRatioRange.max.toFixed(6)}
                   </span>
+                </div>
+                <div style={{ marginTop: '10px', fontSize: '0.9em', color: '#666' }}>
+                  Ancho del rango: {((analysisResult.priceRatioRange.max - analysisResult.priceRatioRange.min) / analysisResult.currentPriceRatio * 100).toFixed(1)}%
                 </div>
               </div>
             </div>

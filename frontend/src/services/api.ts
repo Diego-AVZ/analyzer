@@ -113,13 +113,10 @@ export interface LiquidityRangeResponse {
   pair: string;
   currentPriceA: number;
   currentPriceB: number;
-  rangeA: {
-    min: number;
-    max: number;
-  };
-  rangeB: {
-    min: number;
-    max: number;
+  currentPriceRatio: number; // Precio de A en términos de B (A/B)
+  priceRatioRange: {
+    min: number; // Ratio mínimo (A/B)
+    max: number; // Ratio máximo (A/B)
   };
   historicalAnalysis: {
     totalDays: number;

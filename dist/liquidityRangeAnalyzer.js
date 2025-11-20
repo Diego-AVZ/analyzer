@@ -11,22 +11,22 @@ class LiquidityRangeAnalyzer {
     analyzeLiquidityRange(tokenA, tokenB, klinesA, klinesB, rangeUpPercent, rangeDownPercent) {
         console.log(`🔍 Analizando rango de liquidez para ${tokenA}/${tokenB}`);
         console.log(`📊 Rango: +${rangeUpPercent}% / -${rangeDownPercent}%`);
-        // Obtener precio actual (último precio disponible)
+        // Obtener precios actuales (último precio disponible)
         const currentPriceA = klinesA[klinesA.length - 1].close;
         const currentPriceB = klinesB[klinesB.length - 1].close;
-        // Calcular rangos
-        const rangeA = {
-            min: currentPriceA * (1 - rangeDownPercent / 100),
-            max: currentPriceA * (1 + rangeUpPercent / 100)
-        };
-        const rangeB = {
-            min: currentPriceB * (1 - rangeDownPercent / 100),
-            max: currentPriceB * (1 + rangeUpPercent / 100)
+        // Calcular el ratio de precios actual (A/B) - precio de A en términos de B
+        // Esto es lo que realmente importa en Uniswap V3
+        const currentPriceRatio = currentPriceB !== 0 ? currentPriceA / currentPriceB : 0;
+        // Calcular el rango del ratio basado en porcentajes
+        const priceRatioRange = {
+            min: currentPriceRatio * (1 - rangeDownPercent / 100),
+            max: currentPriceRatio * (1 + rangeUpPercent / 100)
         };
         console.log(`💰 Precios actuales: ${tokenA}=$${currentPriceA.toFixed(2)}, ${tokenB}=$${currentPriceB.toFixed(2)}`);
-        console.log(`📈 Rangos: ${tokenA}=$${rangeA.min.toFixed(2)}-$${rangeA.max.toFixed(2)}, ${tokenB}=$${rangeB.min.toFixed(2)}-$${rangeB.max.toFixed(2)}`);
-        // Analizar datos históricos
-        const historicalAnalysis = this.analyzeHistoricalData(klinesA, klinesB, rangeA, rangeB);
+        console.log(`📈 Ratio actual (${tokenA}/${tokenB}): ${currentPriceRatio.toFixed(6)}`);
+        console.log(`📊 Rango del ratio: ${priceRatioRange.min.toFixed(6)} - ${priceRatioRange.max.toFixed(6)}`);
+        // Analizar datos históricos usando el ratio
+        const historicalAnalysis = this.analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange);
         // Estimar impermanent loss
         const impermanentLossEstimation = this.estimateImpermanentLoss(rangeUpPercent, rangeDownPercent);
         // Generar recomendación
@@ -35,8 +35,8 @@ class LiquidityRangeAnalyzer {
             pair: `${tokenA}/${tokenB}`,
             currentPriceA,
             currentPriceB,
-            rangeA,
-            rangeB,
+            currentPriceRatio,
+            priceRatioRange,
             historicalAnalysis,
             impermanentLossEstimation,
             recommendation: recommendation.recommendation,
@@ -46,8 +46,9 @@ class LiquidityRangeAnalyzer {
     }
     /**
      * Analiza los datos históricos para el rango especificado
+     * Ahora usa el ratio de precios (A/B) en lugar de precios absolutos
      */
-    analyzeHistoricalData(klinesA, klinesB, rangeA, rangeB) {
+    analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange) {
         let daysInRange = 0;
         let daysOutOfRangeUp = 0;
         let daysOutOfRangeDown = 0;
@@ -57,38 +58,47 @@ class LiquidityRangeAnalyzer {
         for (let i = 0; i < klinesA.length; i++) {
             const priceA = klinesA[i].close;
             const priceB = klinesB[i].close;
-            // Calcular volatilidad diaria (cambio porcentual)
-            const volatilityA = Math.abs(klinesA[i].dailyChange);
-            const volatilityB = Math.abs(klinesB[i].dailyChange);
-            const avgVolatility = (volatilityA + volatilityB) / 2;
-            volatilities.push(avgVolatility);
-            // Verificar si ambos precios están en rango
-            const aInRange = priceA >= rangeA.min && priceA <= rangeA.max;
-            const bInRange = priceB >= rangeB.min && priceB <= rangeB.max;
-            if (aInRange && bInRange) {
+            // Calcular el ratio de precios histórico (A/B)
+            const historicalPriceRatio = priceB !== 0 ? priceA / priceB : 0;
+            // Calcular volatilidad del ratio (cambio porcentual del ratio)
+            let ratioVolatility = 0;
+            if (i > 0) {
+                const prevPriceA = klinesA[i - 1].close;
+                const prevPriceB = klinesB[i - 1].close;
+                const prevRatio = prevPriceB !== 0 ? prevPriceA / prevPriceB : 0;
+                if (prevRatio > 0) {
+                    ratioVolatility = Math.abs((historicalPriceRatio - prevRatio) / prevRatio) * 100;
+                }
+            }
+            volatilities.push(ratioVolatility);
+            // Verificar si el ratio está en rango
+            const ratioInRange = historicalPriceRatio >= priceRatioRange.min && historicalPriceRatio <= priceRatioRange.max;
+            if (ratioInRange) {
                 daysInRange++;
                 currentConsecutiveDaysOut = 0; // Resetear contador
             }
             else {
                 currentConsecutiveDaysOut++;
                 maxConsecutiveDaysOut = Math.max(maxConsecutiveDaysOut, currentConsecutiveDaysOut);
-                // Determinar si salió por arriba o abajo
-                if (priceA > rangeA.max || priceB > rangeB.max) {
+                // Determinar si salió por arriba o abajo del rango del ratio
+                if (historicalPriceRatio > priceRatioRange.max) {
                     daysOutOfRangeUp++;
                 }
-                else if (priceA < rangeA.min || priceB < rangeB.min) {
+                else if (historicalPriceRatio < priceRatioRange.min) {
                     daysOutOfRangeDown++;
                 }
             }
         }
         const totalDays = klinesA.length;
         const timeInRangePercentage = (daysInRange / totalDays) * 100;
-        const averageVolatility = volatilities.reduce((sum, vol) => sum + vol, 0) / volatilities.length;
+        const averageVolatility = volatilities.length > 0
+            ? volatilities.reduce((sum, vol) => sum + vol, 0) / volatilities.length
+            : 0;
         console.log(`📊 Análisis histórico completado:`);
         console.log(`   • Días en rango: ${daysInRange}/${totalDays} (${timeInRangePercentage.toFixed(1)}%)`);
         console.log(`   • Salidas por arriba: ${daysOutOfRangeUp}`);
         console.log(`   • Salidas por abajo: ${daysOutOfRangeDown}`);
-        console.log(`   • Volatilidad promedio: ${averageVolatility.toFixed(2)}%`);
+        console.log(`   • Volatilidad promedio del ratio: ${averageVolatility.toFixed(2)}%`);
         console.log(`   • Máx. días consecutivos fuera: ${maxConsecutiveDaysOut}`);
         return {
             totalDays,

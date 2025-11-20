@@ -37,11 +37,8 @@ export interface LiquidityRangeAnalysisResult {
     pair: string;
     currentPriceA: number;
     currentPriceB: number;
-    rangeA: {
-        min: number;
-        max: number;
-    };
-    rangeB: {
+    currentPriceRatio: number;
+    priceRatioRange: {
         min: number;
         max: number;
     };
@@ -69,6 +66,7 @@ export declare class LiquidityRangeAnalyzer {
     analyzeLiquidityRange(tokenA: string, tokenB: string, klinesA: ProcessedKline[], klinesB: ProcessedKline[], rangeUpPercent: number, rangeDownPercent: number): LiquidityRangeAnalysisResult;
     /**
      * Analiza los datos históricos para el rango especificado
+     * Ahora usa el ratio de precios (A/B) en lugar de precios absolutos
      */
     private analyzeHistoricalData;
     /**
