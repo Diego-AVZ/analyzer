@@ -28,19 +28,10 @@ export interface AnalysisConfig {
 
 export const defaultConfig: AnalysisConfig = {
     tokenPairs: [
-        // 🔥 TOP ESTRATEGIAS - Basadas en tus mejores resultados
-        { longToken: 'ETHUSDT', shortToken: 'APTUSDT', description: '🔥 STRONG_BUY - Win Rate 62%, Ganancia 56%' },
-        { longToken: 'ETHUSDT', shortToken: 'INJUSDT', description: '⚡ BUY - Win Rate 63.3%, Excelente consistencia' },
-        { longToken: 'ETHUSDT', shortToken: 'CRVUSDT', description: '⚡ BUY - Win Rate 58.3%, Ganancia 33%' },
-        { longToken: 'ETHUSDT', shortToken: 'XRPUSDT', description: '⚡ BUY - Sharpe 0.23, Ganancia 34%' },
+        // 🔥 ESTRATEGIAS - Solo tokens permitidos en contratos
         { longToken: 'ETHUSDT', shortToken: 'CAKEUSDT', description: '⚡ BUY - Win Rate 59%, Ganancia 45%' },
-        { longToken: 'ETHUSDT', shortToken: 'DYDXUSDT', description: '⚡ BUY - Win Rate 60%, Ganancia 21%' },
-        { longToken: 'ETHUSDT', shortToken: 'SUIUSDT', description: '⚡ BUY - Win Rate 56.7%, Ganancia 24%' },
-        { longToken: 'BTCUSDT', shortToken: 'XLMUSDT', description: '⚡ BUY - Win Rate 58.3%, Ganancia 15%' },
         { longToken: 'BTCUSDT', shortToken: 'PEPEUSDT', description: '⚡ BUY - Win Rate 55%, Ganancia 19%' },
         { longToken: 'ETHUSDT', shortToken: 'OPUSDT', description: '⚡ BUY - Win Rate 55%, Ganancia 79%' },
-        
-        // 📊 ESTRATEGIAS ADICIONALES PROMETEDORAS
         { longToken: 'ETHUSDT', shortToken: 'GMXUSDT', description: '⚡ BUY - Win Rate 57.5%, Ganancia 68%' },
         { longToken: 'ETHUSDT', shortToken: 'DOTUSDT', description: '📊 HOLD - Win Rate 54.5%, Ganancia 77%' },
         { longToken: 'ETHUSDT', shortToken: 'ARBUSDT', description: '📊 HOLD - Win Rate 58%, Ganancia 34%' },

@@ -78,9 +78,11 @@ interface DeltaNeutralResult {
 }
 
 const AVAILABLE_TOKENS = [
-  'ETHUSDT', 'BTCUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
-  'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
-  'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT'
+  'BTCUSDT', 'ETHUSDT', 'LINKUSDT', 'SOLUSDT', 'DOTUSDT', 'AVAXUSDT',
+  'BNBUSDT', 'DOGEUSDT', 'PEPEUSDT', 'WIFUSDT', 'PENDLEUSDT', 'ARBUSDT',
+  'OPUSDT', 'APEUSDT', 'GMXUSDT', 'AAVEUSDT', 'UNIUSDT', 'ADAUSDT',
+  'TAOUSDT', 'ATOMUSDT', 'LDOUSDT', 'NEARUSDT', 'TIAUSDT', 'CAKEUSDT',
+  'ZROUSDT', 'TRUMPUSDT'
 ];
 
 const TIME_PERIODS = [
@@ -91,8 +93,8 @@ const TIME_PERIODS = [
 ];
 
 const DeltaNeutralAnalyzer: React.FC = () => {
-  const [strategyA, setStrategyA] = useState({ longToken: 'ETHUSDT', shortToken: 'APTUSDT' });
-  const [strategyB, setStrategyB] = useState({ longToken: 'ETHUSDT', shortToken: 'CAKEUSDT' });
+  const [strategyA, setStrategyA] = useState({ longToken: 'ETHUSDT', shortToken: 'CAKEUSDT' });
+  const [strategyB, setStrategyB] = useState({ longToken: 'BTCUSDT', shortToken: 'PEPEUSDT' });
   const [timePeriod, setTimePeriod] = useState(100);
   const [result, setResult] = useState<DeltaNeutralResult | null>(null);
   const [loading, setLoading] = useState(false);
