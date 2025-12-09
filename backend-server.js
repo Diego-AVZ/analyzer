@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
 const PORT = 3001;
@@ -864,6 +865,142 @@ app.get('/api/cache-stats', (req, res) => {
     ttl: strategyCache.TTL,
     ttlHours: strategyCache.TTL / (1000 * 60 * 60)
   });
+});
+
+app.get('/api/contract-senders', async (req, res) => {
+  try {
+    const contractAddress = '0xF201797e767872541a8149A4906FF73615189646';
+    const apiKey = 'GGBW6DZQN28DS8PFKNJRE7FP47DCCIA3J6';
+    // API V2 de Etherscan - funciona para todas las redes incluyendo Arbitrum
+    const apiUrl = 'https://api.etherscan.io/v2/api';
+    const chainId = 42161; // Arbitrum One
+    
+    // Parámetros opcionales de query
+    const fromBlock = req.query.fromBlock ? parseInt(req.query.fromBlock) : 0;
+    const toBlock = req.query.toBlock ? parseInt(req.query.toBlock) : 99999999;
+    const maxTxs = req.query.maxTxs ? parseInt(req.query.maxTxs) : null; // Límite opcional de transacciones a procesar
+    
+    const uniqueSenders = new Set();
+    let page = 1;
+    const offset = 10000; // Máximo por página
+    let hasMore = true;
+    let totalTxsProcessed = 0;
+    
+    console.log(`Iniciando búsqueda de msg.senders para contrato ${contractAddress} en Arbitrum (chainId: ${chainId})...`);
+    console.log(`Rango de bloques: ${fromBlock} - ${toBlock}${maxTxs ? `, máximo ${maxTxs} transacciones` : ''}`);
+    
+    while (hasMore) {
+      try {
+        // Si hay un límite de transacciones y ya lo alcanzamos, parar
+        if (maxTxs && totalTxsProcessed >= maxTxs) {
+          console.log(`Límite de transacciones alcanzado: ${totalTxsProcessed}/${maxTxs}`);
+          hasMore = false;
+          break;
+        }
+        
+        // Obtener transacciones donde el contrato es el destino (to)
+        // Esto nos da las transacciones que llamaron al contrato (msg.sender = from)
+        const response = await axios.get(apiUrl, {
+          params: {
+            chainid: chainId,
+            module: 'account',
+            action: 'txlist',
+            address: contractAddress,
+            startblock: fromBlock,
+            endblock: toBlock,
+            page: page,
+            offset: offset,
+            sort: 'asc',
+            apikey: apiKey
+          }
+        });
+        
+        console.log(`Página ${page} - Status: ${response.data.status}, Message: ${response.data.message || 'OK'}`);
+        
+        if (response.data.status === '1' && response.data.result && Array.isArray(response.data.result)) {
+          const transactions = response.data.result;
+          
+          console.log(`Página ${page}: ${transactions.length} transacciones encontradas`);
+          
+          // Filtrar solo las transacciones donde el contrato es el destino (to)
+          // El msg.sender es el campo 'from' de estas transacciones
+          for (const tx of transactions) {
+            // Si hay un límite y ya lo alcanzamos, parar
+            if (maxTxs && totalTxsProcessed >= maxTxs) {
+              hasMore = false;
+              break;
+            }
+            
+            // Solo considerar transacciones donde el contrato es el destino
+            if (tx.to && tx.to.toLowerCase() === contractAddress.toLowerCase()) {
+              // El msg.sender es el 'from' de la transacción
+              if (tx.from && tx.from.toLowerCase() !== contractAddress.toLowerCase()) {
+                uniqueSenders.add(tx.from);
+              }
+              totalTxsProcessed++;
+            }
+          }
+          
+          // Si no hay transacciones o hay menos del offset, es la última página
+          if (transactions.length === 0 || transactions.length < offset) {
+            hasMore = false;
+          } else if (!maxTxs || totalTxsProcessed < maxTxs) {
+            page++;
+          } else {
+            hasMore = false;
+          }
+        } else {
+          // Si la respuesta indica error o no hay más resultados
+          console.log(`Respuesta API: ${JSON.stringify(response.data)}`);
+          if (response.data.message) {
+            if (response.data.message.includes('No transactions found') || 
+                response.data.message === 'OK' && (!response.data.result || response.data.result.length === 0)) {
+              hasMore = false;
+            } else if (response.data.status === '0') {
+              hasMore = false;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        // Pequeña pausa para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+      } catch (error) {
+        console.error(`Error en página ${page}:`, error.message);
+        if (error.response) {
+          console.error(`Response data:`, error.response.data);
+        }
+        hasMore = false;
+      }
+    }
+    
+    const sendersList = Array.from(uniqueSenders);
+    
+    console.log(`Total de msg.senders únicos encontrados: ${sendersList.length}`);
+    
+    res.json({
+      success: true,
+      contractAddress: contractAddress,
+      network: 'Arbitrum',
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+      maxTxs: maxTxs || 'unlimited',
+      totalTxsProcessed: totalTxsProcessed,
+      totalUniqueSenders: sendersList.length,
+      senders: sendersList,
+      pagesProcessed: page
+    });
+    
+  } catch (error) {
+    console.error('Error general:', error);
+    res.status(500).json({
+      error: 'Error obteniendo los msg.senders del contrato',
+      details: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+    });
+  }
 });
 
 app.get('*', (req, res) => {
