@@ -236,21 +236,37 @@ function calculateAPR(metrics) {
   const periods = Object.keys(metrics);
   if (periods.length === 0) return 0;
 
-  const periodPriority = ['100d', '60d', '30d'];
+  const periodPriority = ['200d', '100d', '60d', '30d'];
   
   for (const period of periodPriority) {
     const metric = metrics[period];
     if (metric && metric.validDays >= 30) {
       const days = parseInt(period.replace('d', ''));
-      const totalProfit = metric.totalProfit;
       
-      let apr = (totalProfit * 365) / days;
-      
-      if (period === '30d') {
-        apr = apr * 0.5;
-      } else if (period === '60d') {
-        apr = apr * 0.8;
+      if (metric.initialLongPrice && metric.finalLongPrice && 
+          metric.initialShortPrice && metric.finalShortPrice) {
+        
+        const longReturn = metric.initialLongPrice > 0 
+          ? ((metric.finalLongPrice - metric.initialLongPrice) / metric.initialLongPrice) * 100 
+          : 0;
+        
+        const shortReturn = metric.initialShortPrice > 0 
+          ? ((metric.initialShortPrice - metric.finalShortPrice) / metric.initialShortPrice) * 100 
+          : 0;
+        
+        const longContribution = longReturn * 0.5;
+        const shortContribution = shortReturn * 0.5;
+        
+        const totalReturnPercent = longContribution + shortContribution;
+        
+        const apr = (totalReturnPercent / days) * 365;
+        
+        return Math.round(apr * 10) / 10;
       }
+      
+      const totalReturnPercent = metric.totalProfit;
+      
+      const apr = (totalReturnPercent / days) * 365;
       
       return Math.round(apr * 10) / 10;
     }
@@ -396,7 +412,39 @@ app.post('/api/analyze', async (req, res) => {
 
     const result = longShortAnalyzer.generateRecommendation(stats);
 
-    res.json(result);
+    const firstLongKline = synchronizedA[0];
+    const lastLongKline = synchronizedA[synchronizedA.length - 1];
+    const firstShortKline = synchronizedB[0];
+    const lastShortKline = synchronizedB[synchronizedB.length - 1];
+
+    const days = synchronizedA.length;
+    
+    const longReturn = firstLongKline.open > 0 
+      ? ((lastLongKline.close - firstLongKline.open) / firstLongKline.open) * 100 
+      : 0;
+    
+    const shortReturn = firstShortKline.open > 0 
+      ? ((firstShortKline.open - lastShortKline.close) / firstShortKline.open) * 100 
+      : 0;
+    
+    const longContribution = longReturn * 0.5;
+    const shortContribution = shortReturn * 0.5;
+    
+    const totalReturnPercent = longContribution + shortContribution;
+    
+    const apr = (totalReturnPercent / days) * 365;
+
+    const response = {
+      ...result,
+      apr: Math.round(apr * 10) / 10,
+      periodDays: days,
+      initialLongPrice: firstLongKline.open,
+      finalLongPrice: lastLongKline.close,
+      initialShortPrice: firstShortKline.open,
+      finalShortPrice: lastShortKline.close
+    };
+
+    res.json(response);
 
   } catch (error) {
     res.status(500).json({ 
@@ -763,6 +811,11 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
                 const result = longShortAnalyzer.generateRecommendation(stats);
 
+                const firstLongKline = synchronizedA[0];
+                const lastLongKline = synchronizedA[synchronizedA.length - 1];
+                const firstShortKline = synchronizedB[0];
+                const lastShortKline = synchronizedB[synchronizedB.length - 1];
+
                 pairResults.metrics[`${period}d`] = {
                   winRate: stats.winRate,
                   totalProfit: stats.totalProfit,
@@ -771,7 +824,11 @@ app.get('/api/strategy-bundles', async (req, res) => {
                   consistencyScore: stats.consistencyScore,
                   recommendation: result.recommendation,
                   confidence: result.confidence,
-                  validDays: stats.validDays
+                  validDays: stats.validDays,
+                  initialLongPrice: firstLongKline.open,
+                  finalLongPrice: lastLongKline.close,
+                  initialShortPrice: firstShortKline.open,
+                  finalShortPrice: lastShortKline.close
                 };
               }
             }
