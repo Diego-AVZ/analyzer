@@ -132,4 +132,3 @@ async function ejecutarTodosLosEjemplos() {
 if (require.main === module) {
     ejecutarTodosLosEjemplos();
 }
-//# sourceMappingURL=examples.js.map

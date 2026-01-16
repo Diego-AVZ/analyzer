@@ -59,4 +59,3 @@ function filterTokenPairs(config, filterFn) {
         tokenPairs: config.tokenPairs.filter(filterFn)
     };
 }
-//# sourceMappingURL=config.js.map

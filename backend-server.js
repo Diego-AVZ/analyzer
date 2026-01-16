@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const axios = require('axios');
 
 const app = express();
@@ -236,37 +235,21 @@ function calculateAPR(metrics) {
   const periods = Object.keys(metrics);
   if (periods.length === 0) return 0;
 
-  const periodPriority = ['200d', '100d', '60d', '30d'];
+  const periodPriority = ['100d', '60d', '30d'];
   
   for (const period of periodPriority) {
     const metric = metrics[period];
     if (metric && metric.validDays >= 30) {
       const days = parseInt(period.replace('d', ''));
+      const averageDailyProfit = metric.averageDailyProfit;
+      const dailyReturnDecimal = averageDailyProfit / 100;
+      let apr = (Math.pow(1 + dailyReturnDecimal, 365) - 1) * 100;
       
-      if (metric.initialLongPrice && metric.finalLongPrice && 
-          metric.initialShortPrice && metric.finalShortPrice) {
-        
-        const longReturn = metric.initialLongPrice > 0 
-          ? ((metric.finalLongPrice - metric.initialLongPrice) / metric.initialLongPrice) * 100 
-          : 0;
-        
-        const shortReturn = metric.initialShortPrice > 0 
-          ? ((metric.initialShortPrice - metric.finalShortPrice) / metric.initialShortPrice) * 100 
-          : 0;
-        
-        const longContribution = longReturn * 0.5;
-        const shortContribution = shortReturn * 0.5;
-        
-        const totalReturnPercent = longContribution + shortContribution;
-        
-        const apr = (totalReturnPercent / days) * 365;
-        
-        return Math.round(apr * 10) / 10;
+      if (period === '30d') {
+        apr = apr * 0.5;
+      } else if (period === '60d') {
+        apr = apr * 0.8;
       }
-      
-      const totalReturnPercent = metric.totalProfit;
-      
-      const apr = (totalReturnPercent / days) * 365;
       
       return Math.round(apr * 10) / 10;
     }
@@ -338,7 +321,6 @@ app.options('*', (req, res) => {
   res.sendStatus(200);
 });
 
-app.use(express.static(path.join(__dirname, 'frontend/build')));
 
 const { BinanceService } = require('./dist/binanceService');
 const { LongShortAnalyzer } = require('./dist/longShortAnalyzer');
@@ -412,39 +394,7 @@ app.post('/api/analyze', async (req, res) => {
 
     const result = longShortAnalyzer.generateRecommendation(stats);
 
-    const firstLongKline = synchronizedA[0];
-    const lastLongKline = synchronizedA[synchronizedA.length - 1];
-    const firstShortKline = synchronizedB[0];
-    const lastShortKline = synchronizedB[synchronizedB.length - 1];
-
-    const days = synchronizedA.length;
-    
-    const longReturn = firstLongKline.open > 0 
-      ? ((lastLongKline.close - firstLongKline.open) / firstLongKline.open) * 100 
-      : 0;
-    
-    const shortReturn = firstShortKline.open > 0 
-      ? ((firstShortKline.open - lastShortKline.close) / firstShortKline.open) * 100 
-      : 0;
-    
-    const longContribution = longReturn * 0.5;
-    const shortContribution = shortReturn * 0.5;
-    
-    const totalReturnPercent = longContribution + shortContribution;
-    
-    const apr = (totalReturnPercent / days) * 365;
-
-    const response = {
-      ...result,
-      apr: Math.round(apr * 10) / 10,
-      periodDays: days,
-      initialLongPrice: firstLongKline.open,
-      finalLongPrice: lastLongKline.close,
-      initialShortPrice: firstShortKline.open,
-      finalShortPrice: lastShortKline.close
-    };
-
-    res.json(response);
+    res.json(result);
 
   } catch (error) {
     res.status(500).json({ 
@@ -602,7 +552,6 @@ app.get('/api/long-short-history', async (req, res) => {
     const longTokenUpper = longToken.toUpperCase();
     const shortTokenUpper = shortToken.toUpperCase();
     
-    // Asegurar que los tokens tengan el sufijo USDT si no lo tienen
     const longTokenSymbol = longTokenUpper.endsWith('USDT') ? longTokenUpper : `${longTokenUpper}USDT`;
     const shortTokenSymbol = shortTokenUpper.endsWith('USDT') ? shortTokenUpper : `${shortTokenUpper}USDT`;
 
@@ -639,33 +588,28 @@ app.get('/api/long-short-history', async (req, res) => {
       });
     }
 
-    // Calcular el ratio longToken/shortToken para cada vela
     const ratioKlines = synchronizedA.map((longKline, index) => {
       const shortKline = synchronizedB[index];
       
-      // Calcular ratios: longToken / shortToken
       const openRatio = shortKline.open !== 0 ? (longKline.open / shortKline.open) : 0;
       const highRatio = shortKline.high !== 0 ? (longKline.high / shortKline.high) : 0;
       const lowRatio = shortKline.low !== 0 ? (longKline.low / shortKline.low) : 0;
       const closeRatio = shortKline.close !== 0 ? (longKline.close / shortKline.close) : 0;
-      
-      // Calcular volumen combinado (promedio de ambos)
       const volumeRatio = (longKline.volume + shortKline.volume) / 2;
       
-      // Crear BinanceKline con el formato correcto
       const ratioKline = [
-        longKline.timestamp,                    // 0: Open time
-        openRatio.toFixed(8),                   // 1: Open (ratio)
-        highRatio.toFixed(8),                   // 2: High (ratio)
-        lowRatio.toFixed(8),                    // 3: Low (ratio)
-        closeRatio.toFixed(8),                  // 4: Close (ratio)
-        volumeRatio.toFixed(8),                 // 5: Volume (promedio)
-        longKline.timestamp + 86400000 - 1,      // 6: Close time (24h - 1ms)
-        volumeRatio.toFixed(8),                 // 7: Quote asset volume
-        0,                                       // 8: Number of trades (no disponible)
-        (volumeRatio * 0.5).toFixed(8),         // 9: Taker buy base asset volume (estimado)
-        (volumeRatio * 0.5).toFixed(8),         // 10: Taker buy quote asset volume (estimado)
-        '0'                                      // 11: Ignore
+        longKline.timestamp,
+        openRatio.toFixed(8),
+        highRatio.toFixed(8),
+        lowRatio.toFixed(8),
+        closeRatio.toFixed(8),
+        volumeRatio.toFixed(8),
+        longKline.timestamp + 86400000 - 1,
+        volumeRatio.toFixed(8),
+        0,
+        (volumeRatio * 0.5).toFixed(8),
+        (volumeRatio * 0.5).toFixed(8),
+        '0'
       ];
       
       return ratioKline;
@@ -811,11 +755,6 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
                 const result = longShortAnalyzer.generateRecommendation(stats);
 
-                const firstLongKline = synchronizedA[0];
-                const lastLongKline = synchronizedA[synchronizedA.length - 1];
-                const firstShortKline = synchronizedB[0];
-                const lastShortKline = synchronizedB[synchronizedB.length - 1];
-
                 pairResults.metrics[`${period}d`] = {
                   winRate: stats.winRate,
                   totalProfit: stats.totalProfit,
@@ -824,11 +763,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
                   consistencyScore: stats.consistencyScore,
                   recommendation: result.recommendation,
                   confidence: result.confidence,
-                  validDays: stats.validDays,
-                  initialLongPrice: firstLongKline.open,
-                  finalLongPrice: lastLongKline.close,
-                  initialShortPrice: firstShortKline.open,
-                  finalShortPrice: lastShortKline.close
+                  validDays: stats.validDays
                 };
               }
             }
@@ -928,35 +863,26 @@ app.get('/api/contract-senders', async (req, res) => {
   try {
     const contractAddress = '0xF201797e767872541a8149A4906FF73615189646';
     const apiKey = 'GGBW6DZQN28DS8PFKNJRE7FP47DCCIA3J6';
-    // API V2 de Etherscan - funciona para todas las redes incluyendo Arbitrum
     const apiUrl = 'https://api.etherscan.io/v2/api';
-    const chainId = 42161; // Arbitrum One
+    const chainId = 42161;
     
-    // Parámetros opcionales de query
     const fromBlock = req.query.fromBlock ? parseInt(req.query.fromBlock) : 0;
     const toBlock = req.query.toBlock ? parseInt(req.query.toBlock) : 99999999;
-    const maxTxs = req.query.maxTxs ? parseInt(req.query.maxTxs) : null; // Límite opcional de transacciones a procesar
+    const maxTxs = req.query.maxTxs ? parseInt(req.query.maxTxs) : null;
     
     const uniqueSenders = new Set();
     let page = 1;
-    const offset = 10000; // Máximo por página
+    const offset = 10000;
     let hasMore = true;
     let totalTxsProcessed = 0;
     
-    console.log(`Iniciando búsqueda de msg.senders para contrato ${contractAddress} en Arbitrum (chainId: ${chainId})...`);
-    console.log(`Rango de bloques: ${fromBlock} - ${toBlock}${maxTxs ? `, máximo ${maxTxs} transacciones` : ''}`);
-    
     while (hasMore) {
       try {
-        // Si hay un límite de transacciones y ya lo alcanzamos, parar
         if (maxTxs && totalTxsProcessed >= maxTxs) {
-          console.log(`Límite de transacciones alcanzado: ${totalTxsProcessed}/${maxTxs}`);
           hasMore = false;
           break;
         }
         
-        // Obtener transacciones donde el contrato es el destino (to)
-        // Esto nos da las transacciones que llamaron al contrato (msg.sender = from)
         const response = await axios.get(apiUrl, {
           params: {
             chainid: chainId,
@@ -972,25 +898,16 @@ app.get('/api/contract-senders', async (req, res) => {
           }
         });
         
-        console.log(`Página ${page} - Status: ${response.data.status}, Message: ${response.data.message || 'OK'}`);
-        
         if (response.data.status === '1' && response.data.result && Array.isArray(response.data.result)) {
           const transactions = response.data.result;
           
-          console.log(`Página ${page}: ${transactions.length} transacciones encontradas`);
-          
-          // Filtrar solo las transacciones donde el contrato es el destino (to)
-          // El msg.sender es el campo 'from' de estas transacciones
           for (const tx of transactions) {
-            // Si hay un límite y ya lo alcanzamos, parar
             if (maxTxs && totalTxsProcessed >= maxTxs) {
               hasMore = false;
               break;
             }
             
-            // Solo considerar transacciones donde el contrato es el destino
             if (tx.to && tx.to.toLowerCase() === contractAddress.toLowerCase()) {
-              // El msg.sender es el 'from' de la transacción
               if (tx.from && tx.from.toLowerCase() !== contractAddress.toLowerCase()) {
                 uniqueSenders.add(tx.from);
               }
@@ -998,7 +915,6 @@ app.get('/api/contract-senders', async (req, res) => {
             }
           }
           
-          // Si no hay transacciones o hay menos del offset, es la última página
           if (transactions.length === 0 || transactions.length < offset) {
             hasMore = false;
           } else if (!maxTxs || totalTxsProcessed < maxTxs) {
@@ -1007,8 +923,6 @@ app.get('/api/contract-senders', async (req, res) => {
             hasMore = false;
           }
         } else {
-          // Si la respuesta indica error o no hay más resultados
-          console.log(`Respuesta API: ${JSON.stringify(response.data)}`);
           if (response.data.message) {
             if (response.data.message.includes('No transactions found') || 
                 response.data.message === 'OK' && (!response.data.result || response.data.result.length === 0)) {
@@ -1021,21 +935,14 @@ app.get('/api/contract-senders', async (req, res) => {
           }
         }
         
-        // Pequeña pausa para evitar rate limiting
         await new Promise(resolve => setTimeout(resolve, 200));
         
       } catch (error) {
-        console.error(`Error en página ${page}:`, error.message);
-        if (error.response) {
-          console.error(`Response data:`, error.response.data);
-        }
         hasMore = false;
       }
     }
     
     const sendersList = Array.from(uniqueSenders);
-    
-    console.log(`Total de msg.senders únicos encontrados: ${sendersList.length}`);
     
     res.json({
       success: true,
@@ -1051,7 +958,6 @@ app.get('/api/contract-senders', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error general:', error);
     res.status(500).json({
       error: 'Error obteniendo los msg.senders del contrato',
       details: error.message,
@@ -1060,9 +966,6 @@ app.get('/api/contract-senders', async (req, res) => {
   }
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {

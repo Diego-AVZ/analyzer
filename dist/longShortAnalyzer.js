@@ -427,4 +427,3 @@ class LongShortAnalyzer {
     }
 }
 exports.LongShortAnalyzer = LongShortAnalyzer;
-//# sourceMappingURL=longShortAnalyzer.js.map
