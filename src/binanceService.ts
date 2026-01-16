@@ -213,3 +213,4 @@ export class BinanceService {
     return { synchronizedA, synchronizedB };
   }
 }
+

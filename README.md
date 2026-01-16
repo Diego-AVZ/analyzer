@@ -52,9 +52,28 @@ Analyzes a long/short trading strategy between two tokens.
     "confidence": 75.5
   },
   "recommendation": "BUY",
-  "confidence": 75.5
+  "confidence": 75.5,
+  "marketCapAlignment": {
+    "level": "HIGH",
+    "score": 100,
+    "description": "Both tokens are high market cap, similar volatility expected",
+    "longTokenCategory": "H",
+    "shortTokenCategory": "H"
+  }
 }
 ```
+
+**Market Cap Alignment Levels:**
+- `HIGH` (score 100): Both tokens have similar market cap categories (H-H, M-M, L-L, SUPERL-SUPERL)
+- `MEDIUM` (score 50-70): Moderate difference in market cap (H-M, M-L, L-SUPERL)
+- `LOW` (score 30-40): Significant difference in market cap (H-L, M-SUPERL)
+- `VERY_LOW` (score 20): Extreme difference in market cap (H-SUPERL)
+
+**Market Cap Categories:**
+- `H`: High market cap (BTC, ETH, SOL, BNB, XRP)
+- `M`: Medium market cap (LINK, AVAX, DOGE, ADA, XLM)
+- `L`: Low market cap (most altcoins)
+- `SUPERL`: Very low market cap (meme coins, low liquidity tokens)
 
 **Example:**
 ```bash
@@ -153,15 +172,23 @@ curl -X POST {baseUrl}/api/liquidity-range \
 
 ### GET /tokens
 
-Returns the list of available trading tokens.
+Returns the list of available trading tokens with their market cap categories.
 
 **Response:**
 ```json
 [
-  "BTCUSDT",
-  "ETHUSDT",
-  "LINKUSDT",
-  "SOLUSDT",
+  {
+    "symbol": "BTCUSDT",
+    "marketCapCategory": "H"
+  },
+  {
+    "symbol": "ETHUSDT",
+    "marketCapCategory": "H"
+  },
+  {
+    "symbol": "LINKUSDT",
+    "marketCapCategory": "M"
+  },
   ...
 ]
 ```
@@ -314,3 +341,23 @@ Currently, no rate limiting is implemented. Use responsibly.
 ## Data Sources
 
 Price data is sourced from Binance public API (`https://api.binance.com/api/v3/klines`).
+
+
+
+  █████████                                   █████                          
+ ███▒▒▒▒▒███                                 ▒▒███                           
+▒███    ▒▒▒      ██████     ████████       ███████     ████████      ██████  
+▒▒█████████     ███▒▒███   ▒▒███▒▒███     ███▒▒███    ▒▒███▒▒███    ▒▒▒▒▒███ 
+ ▒▒▒▒▒▒▒▒███   ▒███████     ▒███ ▒███    ▒███ ▒███     ▒███ ▒▒▒      ███████ 
+ ███    ▒███   ▒███▒▒▒      ▒███ ▒███    ▒███ ▒███     ▒███         ███▒▒███ 
+▒▒█████████    ▒▒██████     ████ █████   ▒▒████████    █████       ▒▒████████
+ ▒▒▒▒▒▒▒▒▒      ▒▒▒▒▒▒     ▒▒▒▒ ▒▒▒▒▒     ▒▒▒▒▒▒▒▒    ▒▒▒▒▒         ▒▒▒▒▒▒▒▒ 
+                                                                             
+ █████                 █████            
+▒▒███                 ▒▒███             
+ ▒███         ██████   ▒███████   █████ 
+ ▒███        ▒▒▒▒▒███  ▒███▒▒███ ███▒▒  
+ ▒███         ███████  ▒███ ▒███▒▒█████ 
+ ▒███      █ ███▒▒███  ▒███ ▒███ ▒▒▒▒███
+ ███████████▒▒████████ ████████  ██████ 
+▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒  

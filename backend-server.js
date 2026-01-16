@@ -324,6 +324,75 @@ const { DeltaNeutralAnalyzer } = require('./dist/deltaNeutralAnalyzer');
 const { LiquidityRangeAnalyzer } = require('./dist/liquidityRangeAnalyzer');
 const { getConfig } = require('./dist/config');
 
+const MARKET_CAP_CATEGORIES = {
+  'BTCUSDT': 'H',
+  'ETHUSDT': 'H',
+  'LINKUSDT': 'M',
+  'SOLUSDT': 'H',
+  'DOTUSDT': 'L',
+  'AVAXUSDT': 'M',
+  'BNBUSDT': 'H',
+  'DOGEUSDT': 'M',
+  'PEPEUSDT': 'L',
+  'WIFUSDT': 'SUPERL',
+  'PENDLEUSDT': 'SUPERL',
+  'ARBUSDT': 'L',
+  'OPUSDT': 'L',
+  'APEUSDT': 'SUPERL',
+  'GMXUSDT': 'SUPERL',
+  'AAVEUSDT': 'L',
+  'UNIUSDT': 'L',
+  'ADAUSDT': 'M',
+  'TAOUSDT': 'L',
+  'ATOMUSDT': 'L',
+  'LDOUSDT': 'SUPERL',
+  'NEARUSDT': 'L',
+  'TIAUSDT': 'L',
+  'CAKEUSDT': 'L',
+  'ZROUSDT': 'L',
+  'TRUMPUSDT': 'L',
+  'APTUSDT': 'L',
+  'INJUSDT': 'L',
+  'CRVUSDT': 'L',
+  'XRPUSDT': 'H',
+  'DYDXUSDT': 'SUPERL',
+  'SUIUSDT': 'L',
+  'XLMUSDT': 'M'
+};
+
+function getMarketCapAlignment(longToken, shortToken) {
+  const longCap = MARKET_CAP_CATEGORIES[longToken.toUpperCase()] || 'L';
+  const shortCap = MARKET_CAP_CATEGORIES[shortToken.toUpperCase()] || 'L';
+  
+  const alignmentMatrix = {
+    'H-H': { level: 'HIGH', score: 100, description: 'Both tokens are high market cap, similar volatility expected' },
+    'H-M': { level: 'MEDIUM', score: 70, description: 'High and medium market cap, moderate volatility difference' },
+    'H-L': { level: 'LOW', score: 40, description: 'High and low market cap, significant volatility difference' },
+    'H-SUPERL': { level: 'VERY_LOW', score: 20, description: 'High and very low market cap, extreme volatility difference' },
+    'M-M': { level: 'HIGH', score: 100, description: 'Both tokens are medium market cap, similar volatility expected' },
+    'M-L': { level: 'MEDIUM', score: 60, description: 'Medium and low market cap, moderate volatility difference' },
+    'M-SUPERL': { level: 'LOW', score: 30, description: 'Medium and very low market cap, significant volatility difference' },
+    'L-L': { level: 'HIGH', score: 100, description: 'Both tokens are low market cap, similar volatility expected' },
+    'L-SUPERL': { level: 'MEDIUM', score: 50, description: 'Low and very low market cap, moderate volatility difference' },
+    'SUPERL-SUPERL': { level: 'HIGH', score: 100, description: 'Both tokens are very low market cap, similar volatility expected' }
+  };
+  
+  const key = `${longCap}-${shortCap}`;
+  const reverseKey = `${shortCap}-${longCap}`;
+  
+  const result = alignmentMatrix[key] || alignmentMatrix[reverseKey] || { 
+    level: 'UNKNOWN', 
+    score: 0, 
+    description: 'Market cap categories not found' 
+  };
+  
+  return {
+    ...result,
+    longTokenCategory: longCap,
+    shortTokenCategory: shortCap
+  };
+}
+
 app.post('/api/analyze', async (req, res) => {
   try {
     const { longToken, shortToken, timePeriod } = req.body;
@@ -389,8 +458,25 @@ app.post('/api/analyze', async (req, res) => {
     );
 
     const result = longShortAnalyzer.generateRecommendation(stats);
+    
+    const marketCapAlignment = getMarketCapAlignment(longToken, shortToken);
+    
+    const { sharpeRatio, consistencyScore, recommendation, ...statsFiltered } = stats;
+    const { recommendation: rec, confidence, ...resultFiltered } = result;
+    
+    const response = {
+      pair: resultFiltered.pair,
+      stats: statsFiltered,
+      marketCapAlignment: {
+        level: marketCapAlignment.level,
+        score: marketCapAlignment.score,
+        description: marketCapAlignment.description,
+        longTokenCategory: marketCapAlignment.longTokenCategory,
+        shortTokenCategory: marketCapAlignment.shortTokenCategory
+      }
+    };
 
-    res.json(result);
+    res.json(response);
 
   } catch (error) {
     res.status(500).json({ 
@@ -514,14 +600,10 @@ app.post('/api/liquidity-range', async (req, res) => {
 });
 
 app.get('/api/tokens', (req, res) => {
-  const tokens = [
-    'BTCUSDT', 'ETHUSDT', 'LINKUSDT', 'SOLUSDT', 'DOTUSDT', 'AVAXUSDT',
-    'BNBUSDT', 'DOGEUSDT', 'PEPEUSDT', 'WIFUSDT', 'PENDLEUSDT', 'ARBUSDT',
-    'OPUSDT', 'APEUSDT', 'GMXUSDT', 'AAVEUSDT', 'UNIUSDT', 'ADAUSDT',
-    'TAOUSDT', 'ATOMUSDT', 'LDOUSDT', 'NEARUSDT', 'TIAUSDT', 'CAKEUSDT',
-    'ZROUSDT', 'TRUMPUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT',
-    'DYDXUSDT', 'SUIUSDT', 'XLMUSDT'
-  ];
+  const tokens = Object.keys(MARKET_CAP_CATEGORIES).map(token => ({
+    symbol: token,
+    marketCapCategory: MARKET_CAP_CATEGORIES[token]
+  }));
   
   res.json(tokens);
 });
@@ -725,10 +807,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
           longToken: pair.longToken,
           shortToken: pair.shortToken,
           metrics: {},
-          overallScore: 0,
-          riskLevel: 'MEDIUM',
-          recommendation: 'HOLD',
-          confidence: 0
+          riskLevel: 'MEDIUM'
         };
 
         for (const period of timePeriods) {
@@ -759,10 +838,6 @@ app.get('/api/strategy-bundles', async (req, res) => {
                   totalProfit: stats.totalProfit,
                   totalProfitFromPrices: stats.totalProfitFromPrices,
                   averageDailyProfit: stats.averageDailyProfit,
-                  sharpeRatio: stats.sharpeRatio,
-                  consistencyScore: stats.consistencyScore,
-                  recommendation: result.recommendation,
-                  confidence: result.confidence,
                   validDays: stats.validDays
                 };
               }
@@ -772,10 +847,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
         }
 
         if (Object.keys(pairResults.metrics).length > 0) {
-          pairResults.overallScore = calculateOverallScore(pairResults.metrics);
           pairResults.riskLevel = determineRiskLevel(pairResults.metrics);
-          pairResults.recommendation = getBestRecommendation(pairResults.metrics);
-          pairResults.confidence = getAverageConfidence(pairResults.metrics);
           
           analysisResults.push(pairResults);
         }
@@ -793,7 +865,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
     filteredResults.sort((a, b) => {
       switch (sortBy) {
         case 'APR':
-          return b.overallScore - a.overallScore;
+          return calculateAPR(b.metrics) - calculateAPR(a.metrics);
         case 'WIN_RATE':
           return getBestWinRate(b.metrics) - getBestWinRate(a.metrics);
         case 'SHARPE_RATIO':
@@ -801,21 +873,22 @@ app.get('/api/strategy-bundles', async (req, res) => {
         case 'CONSISTENCY':
           return getBestConsistency(b.metrics) - getBestConsistency(a.metrics);
         default:
-          return b.overallScore - a.overallScore;
+          return calculateAPR(b.metrics) - calculateAPR(a.metrics);
       }
     });
 
     const finalResults = filteredResults.slice(0, parseInt(limit));
 
     const resultsWithAPR = finalResults.map(result => ({
-      ...result,
+      pair: result.pair,
+      longToken: result.longToken,
+      shortToken: result.shortToken,
+      metrics: result.metrics,
+      riskLevel: result.riskLevel,
       apr: calculateAPR(result.metrics),
-      tvl: generateSimulatedTVL(result.pair, result.overallScore),
       winRate100d: result.metrics['100d']?.winRate || 0,
       avgDailyProfit100d: result.metrics['100d']?.averageDailyProfit || 0,
-      totalProfit100d: result.metrics['100d']?.totalProfit || 0,
-      sharpeRatio100d: result.metrics['100d']?.sharpeRatio || 0,
-      consistencyScore100d: result.metrics['100d']?.consistencyScore || 0
+      totalProfit100d: result.metrics['100d']?.totalProfit || 0
     }));
 
     const response = {

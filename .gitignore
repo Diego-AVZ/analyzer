@@ -87,3 +87,8 @@ logs
 ehthumbs.db
 Thumbs.db
 .vercel
+
+# Git command outputs
+*--hard*
+*--stat*
+*--diff*
