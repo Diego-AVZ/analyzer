@@ -15,8 +15,8 @@ class LongShortAnalyzer {
         let winningDays = 0;
         let losingDays = 0;
         let totalProfit = 0;
-        let totalGain = 0; // Solo días ganadores
-        let totalLoss = 0; // Solo días perdedores
+        let totalGain = 0;
+        let totalLoss = 0;
         let maxSingleDayProfit = 0;
         let maxSingleDayLoss = 0;
         let consecutiveWinningDays = 0;
@@ -28,30 +28,23 @@ class LongShortAnalyzer {
         for (let i = 0; i < totalDays; i++) {
             const longKline = longKlines[i];
             const shortKline = shortKlines[i];
-            // Verificar que los timestamps coincidan
             if (longKline.timestamp !== shortKline.timestamp) {
                 console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${longKline.timestamp} vs ${shortKline.timestamp}`);
                 continue;
             }
             validDays++;
-            const longChange = longKline.dailyChange; // % cambio del token LONG
-            const shortChange = shortKline.dailyChange; // % cambio del token SHORT
-            // Calcular ganancia/pérdida del día
-            // LONG: ganamos si el token sube (+), perdemos si baja (-)
-            // SHORT: ganamos si el token baja (-), perdemos si sube (+)
-            // Ganancia total = cambio LONG - cambio SHORT
+            const longChange = longKline.dailyChange;
+            const shortChange = shortKline.dailyChange;
             const dailyProfit = longChange - shortChange;
             dailyProfits.push(dailyProfit);
             dailyReturns.push(dailyProfit);
             totalProfit += dailyProfit;
-            // Separar ganancias y pérdidas
             if (dailyProfit > 0) {
                 totalGain += dailyProfit;
             }
             else if (dailyProfit < 0) {
-                totalLoss += dailyProfit; // totalLoss será negativo
+                totalLoss += dailyProfit;
             }
-            // Actualizar máximos y mínimos
             if (i === 0) {
                 maxSingleDayProfit = dailyProfit;
                 maxSingleDayLoss = dailyProfit;
@@ -60,7 +53,6 @@ class LongShortAnalyzer {
                 maxSingleDayProfit = Math.max(maxSingleDayProfit, dailyProfit);
                 maxSingleDayLoss = Math.min(maxSingleDayLoss, dailyProfit);
             }
-            // Clasificar día como ganador o perdedor
             if (dailyProfit > 0) {
                 winningDays++;
                 consecutiveWinningDays++;
@@ -74,26 +66,10 @@ class LongShortAnalyzer {
                 maxConsecutiveLosingDays = Math.max(maxConsecutiveLosingDays, consecutiveLosingDays);
             }
             else {
-                // Día neutro (profit = 0)
                 consecutiveWinningDays = 0;
                 consecutiveLosingDays = 0;
             }
         }
-        // Calcular métricas estadísticas
-        const averageDailyProfit = validDays > 0 ? totalProfit / validDays : 0;
-        const averageDailyGain = winningDays > 0 ? totalGain / winningDays : 0; // Ganancia media por día ganador
-        const averageDailyLoss = losingDays > 0 ? totalLoss / losingDays : 0; // Pérdida media por día perdedor
-        const winRate = validDays > 0 ? (winningDays / validDays) * 100 : 0;
-        const lossRate = validDays > 0 ? (losingDays / validDays) * 100 : 0;
-        // Calcular volatilidad de los retornos
-        const profitVolatility = this.calculateVolatility(dailyProfits);
-        // Calcular Sharpe ratio (asumiendo risk-free rate = 0)
-        const sharpeRatio = profitVolatility > 0 ? averageDailyProfit / profitVolatility : 0;
-        // Calcular métricas de drawdown
-        const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
-        // Calcular consistencia (qué tan consistente es la estrategia)
-        const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
-        // Calcular profit total desde precios iniciales y finales
         let totalProfitFromPrices = 0;
         if (longKlines.length > 0 && shortKlines.length > 0) {
             const firstLongKline = longKlines[0];
@@ -106,6 +82,15 @@ class LongShortAnalyzer {
                 totalProfitFromPrices = longChange - shortChange;
             }
         }
+        const averageDailyProfit = validDays > 0 ? totalProfitFromPrices / validDays : 0;
+        const averageDailyGain = winningDays > 0 ? totalGain / winningDays : 0;
+        const averageDailyLoss = losingDays > 0 ? totalLoss / losingDays : 0;
+        const winRate = validDays > 0 ? (winningDays / validDays) * 100 : 0;
+        const lossRate = validDays > 0 ? (losingDays / validDays) * 100 : 0;
+        const profitVolatility = this.calculateVolatility(dailyProfits);
+        const sharpeRatio = profitVolatility > 0 ? averageDailyProfit / profitVolatility : 0;
+        const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
+        const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
         const consecutiveWins = this.calculateConsecutiveDays(dailyProfits, 'WIN');
         const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
         const consecutivePercentageWins = this.calculateConsecutivePercentage(dailyProfits, 'WIN');
@@ -161,7 +146,6 @@ class LongShortAnalyzer {
     generateRecommendation(stats) {
         let recommendation;
         let confidence = 0;
-        // Evaluar la estrategia basada en win rate y profit promedio
         if (stats.winRate >= 60 && stats.averageDailyProfit >= 0.5) {
             recommendation = 'STRONG_BUY';
             confidence = Math.min(100, stats.winRate + stats.averageDailyProfit * 20);
@@ -368,7 +352,6 @@ class LongShortAnalyzer {
         else if (stats.totalProfit < 0) {
             score -= 0.5;
         }
-        // Bonificación por profit positivo
         if (stats.totalProfit >= 50) {
             score += 1;
         }
@@ -436,7 +419,6 @@ class LongShortAnalyzer {
             return 0;
         const variance = profits.reduce((sum, profit) => sum + Math.pow(profit - averageProfit, 2), 0) / profits.length;
         const standardDeviation = Math.sqrt(variance);
-        // Score inversamente proporcional a la desviación estándar
         return Math.max(0, 100 - (standardDeviation * 10));
     }
 }

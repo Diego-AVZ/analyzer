@@ -17,8 +17,8 @@ export class LongShortAnalyzer {
     let losingDays = 0;
     
     let totalProfit = 0;
-    let totalGain = 0;  // Solo días ganadores
-    let totalLoss = 0;  // Solo días perdedores
+    let totalGain = 0;
+    let totalLoss = 0;
     let maxSingleDayProfit = 0;
     let maxSingleDayLoss = 0;
     
@@ -34,7 +34,6 @@ export class LongShortAnalyzer {
       const longKline = longKlines[i];
       const shortKline = shortKlines[i];
       
-      // Verificar que los timestamps coincidan
       if (longKline.timestamp !== shortKline.timestamp) {
         console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${longKline.timestamp} vs ${shortKline.timestamp}`);
         continue;
@@ -42,27 +41,21 @@ export class LongShortAnalyzer {
 
       validDays++;
       
-      const longChange = longKline.dailyChange;  // % cambio del token LONG
-      const shortChange = shortKline.dailyChange; // % cambio del token SHORT
+      const longChange = longKline.dailyChange;
+      const shortChange = shortKline.dailyChange;
       
-      // Calcular ganancia/pérdida del día
-      // LONG: ganamos si el token sube (+), perdemos si baja (-)
-      // SHORT: ganamos si el token baja (-), perdemos si sube (+)
-      // Ganancia total = cambio LONG - cambio SHORT
       const dailyProfit = longChange - shortChange;
       
       dailyProfits.push(dailyProfit);
       dailyReturns.push(dailyProfit);
       totalProfit += dailyProfit;
       
-      // Separar ganancias y pérdidas
       if (dailyProfit > 0) {
         totalGain += dailyProfit;
       } else if (dailyProfit < 0) {
-        totalLoss += dailyProfit; // totalLoss será negativo
+        totalLoss += dailyProfit;
       }
       
-      // Actualizar máximos y mínimos
       if (i === 0) {
         maxSingleDayProfit = dailyProfit;
         maxSingleDayLoss = dailyProfit;
@@ -71,7 +64,6 @@ export class LongShortAnalyzer {
         maxSingleDayLoss = Math.min(maxSingleDayLoss, dailyProfit);
       }
       
-      // Clasificar día como ganador o perdedor
       if (dailyProfit > 0) {
         winningDays++;
         consecutiveWinningDays++;
@@ -83,32 +75,11 @@ export class LongShortAnalyzer {
         consecutiveWinningDays = 0;
         maxConsecutiveLosingDays = Math.max(maxConsecutiveLosingDays, consecutiveLosingDays);
       } else {
-        // Día neutro (profit = 0)
         consecutiveWinningDays = 0;
         consecutiveLosingDays = 0;
       }
     }
 
-    // Calcular métricas estadísticas
-    const averageDailyProfit = validDays > 0 ? totalProfit / validDays : 0;
-    const averageDailyGain = winningDays > 0 ? totalGain / winningDays : 0;  // Ganancia media por día ganador
-    const averageDailyLoss = losingDays > 0 ? totalLoss / losingDays : 0;   // Pérdida media por día perdedor
-    const winRate = validDays > 0 ? (winningDays / validDays) * 100 : 0;
-    const lossRate = validDays > 0 ? (losingDays / validDays) * 100 : 0;
-    
-    // Calcular volatilidad de los retornos
-    const profitVolatility = this.calculateVolatility(dailyProfits);
-    
-    // Calcular Sharpe ratio (asumiendo risk-free rate = 0)
-    const sharpeRatio = profitVolatility > 0 ? averageDailyProfit / profitVolatility : 0;
-    
-    // Calcular métricas de drawdown
-    const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
-    
-    // Calcular consistencia (qué tan consistente es la estrategia)
-    const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
-
-    // Calcular profit total desde precios iniciales y finales
     let totalProfitFromPrices = 0;
     if (longKlines.length > 0 && shortKlines.length > 0) {
       const firstLongKline = longKlines[0];
@@ -122,6 +93,17 @@ export class LongShortAnalyzer {
         totalProfitFromPrices = longChange - shortChange;
       }
     }
+
+    const averageDailyProfit = validDays > 0 ? totalProfitFromPrices / validDays : 0;
+    const averageDailyGain = winningDays > 0 ? totalGain / winningDays : 0;
+    const averageDailyLoss = losingDays > 0 ? totalLoss / losingDays : 0;
+    const winRate = validDays > 0 ? (winningDays / validDays) * 100 : 0;
+    const lossRate = validDays > 0 ? (losingDays / validDays) * 100 : 0;
+    
+    const profitVolatility = this.calculateVolatility(dailyProfits);
+    const sharpeRatio = profitVolatility > 0 ? averageDailyProfit / profitVolatility : 0;
+    const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
+    const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
 
     const consecutiveWins = this.calculateConsecutiveDays(dailyProfits, 'WIN');
     const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
@@ -183,7 +165,6 @@ export class LongShortAnalyzer {
     let recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG_SELL';
     let confidence = 0;
 
-    // Evaluar la estrategia basada en win rate y profit promedio
     if (stats.winRate >= 60 && stats.averageDailyProfit >= 0.5) {
       recommendation = 'STRONG_BUY';
       confidence = Math.min(100, stats.winRate + stats.averageDailyProfit * 20);
@@ -387,7 +368,6 @@ export class LongShortAnalyzer {
       score -= 0.5;
     }
     
-    // Bonificación por profit positivo
     if (stats.totalProfit >= 50) {
       score += 1;
     } else if (stats.totalProfit >= 20) {
@@ -461,7 +441,6 @@ export class LongShortAnalyzer {
     const variance = profits.reduce((sum, profit) => sum + Math.pow(profit - averageProfit, 2), 0) / profits.length;
     const standardDeviation = Math.sqrt(variance);
     
-    // Score inversamente proporcional a la desviación estándar
     return Math.max(0, 100 - (standardDeviation * 10));
   }
 }
@@ -481,10 +460,10 @@ export interface LongShortStats {
   totalProfit: number;
   totalProfitFromPrices: number;
   averageDailyProfit: number;
-  averageDailyGain: number;  // Ganancia media por día ganador
-  averageDailyLoss: number;  // Pérdida media por día perdedor
-  totalGain: number;         // Ganancia total de días ganadores
-  totalLoss: number;         // Pérdida total de días perdedores
+  averageDailyGain: number;
+  averageDailyLoss: number;
+  totalGain: number;
+  totalLoss: number;
   maxSingleDayProfit: number;
   maxSingleDayLoss: number;
   maxConsecutiveWinningDays: number;
