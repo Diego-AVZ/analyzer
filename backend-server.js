@@ -240,16 +240,12 @@ function calculateAPR(metrics) {
   for (const period of periodPriority) {
     const metric = metrics[period];
     if (metric && metric.validDays >= 30) {
-      const days = parseInt(period.replace('d', ''));
-      const averageDailyProfit = metric.averageDailyProfit;
-      const dailyReturnDecimal = averageDailyProfit / 100;
-      let apr = (Math.pow(1 + dailyReturnDecimal, 365) - 1) * 100;
+      const days = metric.validDays;
+      const totalProfit = metric.totalProfit;
       
-      if (period === '30d') {
-        apr = apr * 0.5;
-      } else if (period === '60d') {
-        apr = apr * 0.8;
-      }
+      if (days === 0 || totalProfit === 0) return 0;
+      
+      const apr = (totalProfit / days) * 365;
       
       return Math.round(apr * 10) / 10;
     }
