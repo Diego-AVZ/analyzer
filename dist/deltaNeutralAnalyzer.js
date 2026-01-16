@@ -29,18 +29,18 @@ class DeltaNeutralAnalyzer {
         const longTokenData = await this.binanceService.getKlines(longToken.toUpperCase());
         const shortTokenData = await this.binanceService.getKlines(shortToken.toUpperCase());
         if (!longTokenData.success || !shortTokenData.success) {
-            throw new Error(`Error obteniendo datos: ${longTokenData.error || shortTokenData.error}`);
+            throw new Error(`Error fetching data: ${longTokenData.error || shortTokenData.error}`);
         }
         const longKlines = this.binanceService.processKlines(longTokenData.data);
         const shortKlines = this.binanceService.processKlines(shortTokenData.data);
         if (!this.binanceService.validateKlines(longKlines) || !this.binanceService.validateKlines(shortKlines)) {
-            throw new Error('Datos inválidos obtenidos de Binance');
+            throw new Error('Invalid data received from Binance');
         }
         const filteredLongKlines = this.binanceService.filterValidDays(longKlines);
         const filteredShortKlines = this.binanceService.filterValidDays(shortKlines);
         const { synchronizedA, synchronizedB } = this.binanceService.synchronizeTimestamps(filteredLongKlines, filteredShortKlines);
         if (synchronizedA.length < 30) {
-            throw new Error(`Insuficientes datos válidos: ${synchronizedA.length} días (mínimo: 30)`);
+            throw new Error(`Insufficient valid data: ${synchronizedA.length} days (minimum: 30)`);
         }
         const stats = this.longShortAnalyzer.analyzeLongShortStrategy(longToken.toUpperCase(), shortToken.toUpperCase(), synchronizedA, synchronizedB);
         const result = this.longShortAnalyzer.generateRecommendation(stats);

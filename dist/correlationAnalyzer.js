@@ -144,38 +144,38 @@ class CorrelationAnalyzer {
         if (stats.inverseCorrelationPercentage >= 40 && stats.correlationCoefficient <= -0.3) {
             recommendation = 'STRONG_INVERSE';
             confidence = Math.min(100, stats.inverseCorrelationPercentage + Math.abs(stats.correlationCoefficient) * 100);
-            strategyAdvice = `🔥 CORRELACIÓN INVERSA FUERTE: ${stats.inverseCorrelationPercentage.toFixed(1)}% de días con correlación inversa. 
-      Estrategia recomendada: Long en ${stats.tokenA} cuando ${stats.tokenB} baja, Short en ${stats.tokenB} cuando ${stats.tokenA} sube.
-      Diferencia promedio: ${stats.averageDifference.toFixed(2)}%.`;
+            strategyAdvice = `STRONG INVERSE CORRELATION: ${stats.inverseCorrelationPercentage.toFixed(1)}% of days with inverse correlation. 
+      Recommended strategy: Long ${stats.tokenA} when ${stats.tokenB} drops, Short ${stats.tokenB} when ${stats.tokenA} rises.
+      Average difference: ${stats.averageDifference.toFixed(2)}%.`;
         }
         else if (stats.inverseCorrelationPercentage >= 25 && stats.correlationCoefficient <= -0.2) {
             recommendation = 'MODERATE_INVERSE';
             confidence = Math.min(100, stats.inverseCorrelationPercentage + Math.abs(stats.correlationCoefficient) * 100);
-            strategyAdvice = `⚡ CORRELACIÓN INVERSA MODERADA: ${stats.inverseCorrelationPercentage.toFixed(1)}% de días con correlación inversa.
-      Estrategia recomendada: Considerar posiciones contrarias en días de alta volatilidad.
-      Diferencia promedio: ${stats.averageDifference.toFixed(2)}%.`;
+            strategyAdvice = `MODERATE INVERSE CORRELATION: ${stats.inverseCorrelationPercentage.toFixed(1)}% of days with inverse correlation.
+      Recommended strategy: Consider opposite positions on high volatility days.
+      Average difference: ${stats.averageDifference.toFixed(2)}%.`;
         }
         else if (stats.inverseCorrelationPercentage >= 15) {
             recommendation = 'WEAK_INVERSE';
             confidence = stats.inverseCorrelationPercentage;
-            strategyAdvice = `📊 CORRELACIÓN INVERSA DÉBIL: ${stats.inverseCorrelationPercentage.toFixed(1)}% de días con correlación inversa.
-      Estrategia recomendada: Análisis adicional necesario antes de implementar estrategia contraria.`;
+            strategyAdvice = `WEAK INVERSE CORRELATION: ${stats.inverseCorrelationPercentage.toFixed(1)}% of days with inverse correlation.
+      Recommended strategy: Additional analysis required before implementing opposite strategy.`;
         }
         else {
             recommendation = 'NO_CORRELATION';
             confidence = 100 - stats.inverseCorrelationPercentage;
-            strategyAdvice = `❌ SIN CORRELACIÓN INVERSA SIGNIFICATIVA: Solo ${stats.inverseCorrelationPercentage.toFixed(1)}% de días con correlación inversa.
-      Estrategia recomendada: Buscar otros pares de tokens o estrategias diferentes.`;
+            strategyAdvice = `NO SIGNIFICANT INVERSE CORRELATION: Only ${stats.inverseCorrelationPercentage.toFixed(1)}% of days with inverse correlation.
+      Recommended strategy: Look for other token pairs or different strategies.`;
         }
-        strategyAdvice += `\n\n📈 MÉTRICAS ADICIONALES:
-    • Días opuestos: ${stats.oppositeDirectionPercentage.toFixed(1)}%
-    • ${stats.tokenA} supera a ${stats.tokenB}: ${stats.aOutperformsBPercentage.toFixed(1)}%
-    • ${stats.tokenB} supera a ${stats.tokenA}: ${stats.bOutperformsAPercentage.toFixed(1)}%
-    • Volatilidad ${stats.tokenA}: ${stats.aVolatility.toFixed(2)}%
-    • Volatilidad ${stats.tokenB}: ${stats.bVolatility.toFixed(2)}%
-    • Ratio volatilidad: ${stats.volatilityRatio.toFixed(2)}
-    • Máximo consecutivo inverso: ${stats.maxConsecutiveInverseDays} días
-    • Consistencia: ${stats.consistencyScore.toFixed(1)}/100`;
+        strategyAdvice += `\n\nADDITIONAL METRICS:
+    • Opposite days: ${stats.oppositeDirectionPercentage.toFixed(1)}%
+    • ${stats.tokenA} outperforms ${stats.tokenB}: ${stats.aOutperformsBPercentage.toFixed(1)}%
+    • ${stats.tokenB} outperforms ${stats.tokenA}: ${stats.bOutperformsAPercentage.toFixed(1)}%
+    • ${stats.tokenA} volatility: ${stats.aVolatility.toFixed(2)}%
+    • ${stats.tokenB} volatility: ${stats.bVolatility.toFixed(2)}%
+    • Volatility ratio: ${stats.volatilityRatio.toFixed(2)}
+    • Maximum consecutive inverse: ${stats.maxConsecutiveInverseDays} days
+    • Consistency: ${stats.consistencyScore.toFixed(1)}/100`;
         return {
             pair: `${stats.tokenA}/${stats.tokenB}`,
             stats,
@@ -198,7 +198,7 @@ class CorrelationAnalyzer {
                     stats: {},
                     recommendation: 'NO_CORRELATION',
                     confidence: 0,
-                    strategyAdvice: `Error en el análisis: ${error}`
+                    strategyAdvice: `Analysis error: ${error}`
                 });
             }
         });

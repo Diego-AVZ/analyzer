@@ -399,13 +399,13 @@ app.post('/api/analyze', async (req, res) => {
     
     if (!longToken || !shortToken) {
       return res.status(400).json({ 
-        error: 'Se requieren longToken y shortToken' 
+        error: 'longToken and shortToken are required' 
       });
     }
 
     if (longToken === shortToken) {
       return res.status(400).json({ 
-        error: 'Los tokens Long y Short deben ser diferentes' 
+        error: 'Long and Short tokens must be different' 
       });
     }
 
@@ -422,7 +422,7 @@ app.post('/api/analyze', async (req, res) => {
 
     if (!longTokenData.success || !shortTokenData.success) {
       return res.status(500).json({ 
-        error: 'Error obteniendo datos de Binance',
+        error: 'Error fetching data from Binance',
         details: longTokenData.error || shortTokenData.error
       });
     }
@@ -432,7 +432,7 @@ app.post('/api/analyze', async (req, res) => {
 
     if (!binanceService.validateKlines(longKlines) || !binanceService.validateKlines(shortKlines)) {
       return res.status(500).json({ 
-        error: 'Datos inválidos obtenidos de Binance' 
+        error: 'Invalid data received from Binance' 
       });
     }
 
@@ -446,7 +446,7 @@ app.post('/api/analyze', async (req, res) => {
 
     if (synchronizedA.length < 30) {
       return res.status(500).json({ 
-        error: `Insuficientes datos válidos: ${synchronizedA.length} días (mínimo: 30)` 
+        error: `Insufficient valid data: ${synchronizedA.length} days (minimum: 30)` 
       });
     }
 
@@ -480,7 +480,7 @@ app.post('/api/analyze', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ 
-      error: 'Error interno del servidor',
+      error: 'Internal server error',
       details: error.message 
     });
   }
@@ -496,7 +496,7 @@ app.post('/api/delta-neutral', async (req, res) => {
     
     if (!longTokenA || !shortTokenA || !longTokenB || !shortTokenB) {
       return res.status(400).json({ 
-        error: 'Se requieren todos los tokens para ambas estrategias' 
+        error: 'All tokens are required for both strategies' 
       });
     }
 
@@ -511,7 +511,7 @@ app.post('/api/delta-neutral', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ 
-      error: 'Error interno del servidor',
+      error: 'Internal server error',
       details: error.message 
     });
   }
@@ -523,19 +523,19 @@ app.post('/api/liquidity-range', async (req, res) => {
     
     if (!tokenA || !tokenB) {
       return res.status(400).json({ 
-        error: 'Se requieren tokenA y tokenB' 
+        error: 'tokenA and tokenB are required' 
       });
     }
 
     if (tokenA === tokenB) {
       return res.status(400).json({ 
-        error: 'Los tokens deben ser diferentes' 
+        error: 'Tokens must be different' 
       });
     }
 
     if (!rangeUpPercent || !rangeDownPercent || rangeUpPercent <= 0 || rangeDownPercent <= 0) {
       return res.status(400).json({ 
-        error: 'Los porcentajes de rango deben ser positivos' 
+        error: 'Range percentages must be positive' 
       });
     }
 
@@ -552,7 +552,7 @@ app.post('/api/liquidity-range', async (req, res) => {
 
     if (!tokenAData.success || !tokenBData.success) {
       return res.status(500).json({ 
-        error: 'Error obteniendo datos de Binance',
+        error: 'Error fetching data from Binance',
         details: tokenAData.error || tokenBData.error
       });
     }
@@ -562,7 +562,7 @@ app.post('/api/liquidity-range', async (req, res) => {
 
     if (!binanceService.validateKlines(klinesA) || !binanceService.validateKlines(klinesB)) {
       return res.status(500).json({ 
-        error: 'Datos inválidos obtenidos de Binance' 
+        error: 'Invalid data received from Binance' 
       });
     }
 
@@ -576,7 +576,7 @@ app.post('/api/liquidity-range', async (req, res) => {
 
     if (synchronizedA.length < 30) {
       return res.status(500).json({ 
-        error: `Insuficientes datos válidos: ${synchronizedA.length} días (mínimo: 30)` 
+        error: `Insufficient valid data: ${synchronizedA.length} days (minimum: 30)` 
       });
     }
 
@@ -593,7 +593,7 @@ app.post('/api/liquidity-range', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ 
-      error: 'Error interno del servidor',
+      error: 'Internal server error',
       details: error.message 
     });
   }
@@ -614,13 +614,13 @@ app.get('/api/long-short-history', async (req, res) => {
     
     if (!longToken || !shortToken) {
       return res.status(400).json({ 
-        error: 'Se requieren longToken y shortToken como parámetros de consulta' 
+        error: 'longToken and shortToken are required as query parameters' 
       });
     }
 
     if (longToken === shortToken) {
       return res.status(400).json({ 
-        error: 'Los tokens Long y Short deben ser diferentes' 
+        error: 'Long and Short tokens must be different' 
       });
     }
 
@@ -641,7 +641,7 @@ app.get('/api/long-short-history', async (req, res) => {
 
     if (!longTokenData.success || !shortTokenData.success) {
       return res.status(500).json({ 
-        error: 'Error obteniendo datos de Binance',
+        error: 'Error fetching data from Binance',
         details: longTokenData.error || shortTokenData.error
       });
     }
@@ -651,7 +651,7 @@ app.get('/api/long-short-history', async (req, res) => {
 
     if (!binanceService.validateKlines(longKlines) || !binanceService.validateKlines(shortKlines)) {
       return res.status(500).json({ 
-        error: 'Datos inválidos obtenidos de Binance' 
+        error: 'Invalid data received from Binance' 
       });
     }
 
@@ -665,7 +665,7 @@ app.get('/api/long-short-history', async (req, res) => {
 
     if (synchronizedA.length === 0) {
       return res.status(500).json({ 
-        error: 'No se encontraron datos sincronizados entre los tokens' 
+        error: 'No synchronized data found between tokens' 
       });
     }
 
@@ -707,7 +707,7 @@ app.get('/api/long-short-history', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ 
-      error: 'Error interno del servidor',
+      error: 'Internal server error',
       details: error.message 
     });
   }
@@ -900,8 +900,8 @@ app.get('/api/strategy-bundles', async (req, res) => {
       strategyInfo: {
         type: strategyType,
         description: strategyType === 'BTC_ETH' 
-          ? 'Análisis enfocado solo en BTC y ETH' 
-          : 'Análisis con todos los tokens principales',
+          ? 'Analysis focused on BTC and ETH only' 
+          : 'Analysis with all major tokens',
         longTokens: targetLongTokens,
         shortTokens: targetShortTokens.slice(0, 5)
       },
@@ -917,7 +917,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ 
-      error: 'Error generando strategy bundles',
+      error: 'Error generating strategy bundles',
       details: error.message 
     });
   }
@@ -1032,7 +1032,7 @@ app.get('/api/contract-senders', async (req, res) => {
     
   } catch (error) {
     res.status(500).json({
-      error: 'Error obteniendo los msg.senders del contrato',
+      error: 'Error fetching contract message senders',
       details: error.message,
       stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
     });

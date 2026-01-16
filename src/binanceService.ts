@@ -32,7 +32,7 @@ export class BinanceService {
       } else {
         return {
           success: false,
-          error: `Respuesta inválida para ${symbol}`,
+          error: `Invalid response for ${symbol}`,
           symbol: symbol
         };
       }
@@ -42,7 +42,7 @@ export class BinanceService {
         let errorMessage = `Error HTTP ${status}: ${error.response.data?.msg || error.message}`;
         
         if (status === 451) {
-          errorMessage = `Error HTTP 451: Binance bloquea el acceso desde esta región. Por favor, contacta al soporte si crees que esto es un error.`;
+          errorMessage = `Error HTTP 451: Binance blocks access from this region. Please contact support if you believe this is an error.`;
         }
         
         return {
@@ -53,7 +53,7 @@ export class BinanceService {
       } else if (error.request) {
         return {
           success: false,
-          error: `Error de red: ${error.message}`,
+          error: `Network error: ${error.message}`,
           symbol: symbol
         };
       } else {
