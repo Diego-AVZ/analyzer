@@ -1,16 +1,8 @@
 import { ProcessedKline, CorrelationStats } from './types';
 
-/**
- * Analizador específico para estrategias Long/Short
- */
 export class LongShortAnalyzer {
   
-  /**
-   * Analiza la estrategia Long/Short entre dos tokens
-   */
   analyzeLongShortStrategy(longToken: string, shortToken: string, longKlines: ProcessedKline[], shortKlines: ProcessedKline[]): LongShortStats {
-    console.log(`🔍 Analizando estrategia LONG ${longToken} vs SHORT ${shortToken}...`);
-    
     const totalDays = longKlines.length;
     let validDays = 0;
     let winningDays = 0;
@@ -35,7 +27,6 @@ export class LongShortAnalyzer {
       const shortKline = shortKlines[i];
       
       if (longKline.timestamp !== shortKline.timestamp) {
-        console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${longKline.timestamp} vs ${shortKline.timestamp}`);
         continue;
       }
 
@@ -154,13 +145,9 @@ export class LongShortAnalyzer {
 
     stats.recommendation = this.calculateRecommendationScore(stats);
 
-    console.log(`✅ Análisis completado para LONG ${longToken}/SHORT ${shortToken}: ${validDays} días válidos, ${winningDays} días ganadores (${winRate.toFixed(1)}%)`);
     return stats;
   }
 
-  /**
-   * Genera recomendaciones basadas en las estadísticas de la estrategia
-   */
   generateRecommendation(stats: LongShortStats): LongShortAnalysisResult {
     let recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG_SELL';
     let confidence = 0;
@@ -190,9 +177,6 @@ export class LongShortAnalyzer {
     };
   }
 
-  /**
-   * Métodos auxiliares
-   */
   private calculateVolatility(returns: number[]): number {
     if (returns.length === 0) return 0;
     
@@ -445,9 +429,6 @@ export class LongShortAnalyzer {
   }
 }
 
-/**
- * Tipos específicos para análisis Long/Short
- */
 export interface LongShortStats {
   longToken: string;
   shortToken: string;

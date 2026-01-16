@@ -3,34 +3,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeltaNeutralAnalyzer = void 0;
 const binanceService_1 = require("./binanceService");
 const longShortAnalyzer_1 = require("./longShortAnalyzer");
-/**
- * Analizador de estrategias delta neutral combinadas
- */
 class DeltaNeutralAnalyzer {
     constructor() {
         this.binanceService = new binanceService_1.BinanceService('https://api.binance.com/api/v3/klines', '1d', 100);
         this.longShortAnalyzer = new longShortAnalyzer_1.LongShortAnalyzer();
     }
-    /**
-     * Analiza dos estrategias Long/Short y su combinación delta neutral
-     */
     async analyzeDeltaNeutral(strategyA, strategyB, timePeriod = 100) {
-        console.log(`🔍 Iniciando análisis delta neutral...`);
-        console.log(`📊 Estrategia A: LONG ${strategyA.longToken}/SHORT ${strategyA.shortToken}`);
-        console.log(`📊 Estrategia B: LONG ${strategyB.longToken}/SHORT ${strategyB.shortToken}`);
         // Actualizar período de tiempo
         this.binanceService = new binanceService_1.BinanceService('https://api.binance.com/api/v3/klines', '1d', timePeriod);
         // Analizar estrategia A
-        console.log(`\n🔬 Analizando Estrategia A...`);
         const strategyAResult = await this.analyzeSingleStrategy(strategyA.longToken, strategyA.shortToken);
         // Analizar estrategia B
-        console.log(`\n🔬 Analizando Estrategia B...`);
         const strategyBResult = await this.analyzeSingleStrategy(strategyB.longToken, strategyB.shortToken);
         // Analizar correlación entre estrategias
-        console.log(`\n🔗 Analizando correlación entre estrategias...`);
         const correlation = this.analyzeStrategyCorrelation(strategyAResult, strategyBResult);
         // Calcular métricas del portafolio combinado
-        console.log(`\n📈 Calculando métricas del portafolio combinado...`);
         const portfolioMetrics = this.calculatePortfolioMetrics(strategyAResult, strategyBResult, correlation);
         // Generar recomendación final
         const recommendation = this.generateRecommendation(strategyAResult, strategyBResult, correlation, portfolioMetrics);
@@ -41,13 +28,9 @@ class DeltaNeutralAnalyzer {
             portfolioMetrics,
             recommendation
         };
-        console.log(`\n✅ Análisis delta neutral completado!`);
         this.printSummary(result);
         return result;
     }
-    /**
-     * Analiza una estrategia individual
-     */
     async analyzeSingleStrategy(longToken, shortToken) {
         // Obtener datos de ambos tokens
         const longTokenData = await this.binanceService.getKlines(longToken.toUpperCase());
@@ -75,9 +58,6 @@ class DeltaNeutralAnalyzer {
         const result = this.longShortAnalyzer.generateRecommendation(stats);
         return result;
     }
-    /**
-     * Analiza la correlación entre dos estrategias
-     */
     analyzeStrategyCorrelation(strategyA, strategyB) {
         const dailyProfitsA = strategyA.stats.dailyProfits;
         const dailyProfitsB = strategyB.stats.dailyProfits;
@@ -123,9 +103,6 @@ class DeltaNeutralAnalyzer {
             portfolioSharpeRatio
         };
     }
-    /**
-     * Calcula el coeficiente de correlación entre dos arrays
-     */
     calculateCorrelationCoefficient(arrayA, arrayB) {
         const n = arrayA.length;
         const sumA = arrayA.reduce((sum, val) => sum + val, 0);
@@ -137,27 +114,18 @@ class DeltaNeutralAnalyzer {
         const denominator = Math.sqrt((n * sumA2 - sumA * sumA) * (n * sumB2 - sumB * sumB));
         return denominator === 0 ? 0 : numerator / denominator;
     }
-    /**
-     * Calcula la volatilidad combinada del portafolio
-     */
     calculateCombinedVolatility(dailyProfitsA, dailyProfitsB) {
         const combinedProfits = dailyProfitsA.map((profit, i) => (profit + dailyProfitsB[i]) / 2);
         const mean = combinedProfits.reduce((sum, val) => sum + val, 0) / combinedProfits.length;
         const variance = combinedProfits.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / combinedProfits.length;
         return Math.sqrt(variance);
     }
-    /**
-     * Calcula el Sharpe ratio del portafolio
-     */
     calculatePortfolioSharpeRatio(dailyProfitsA, dailyProfitsB) {
         const combinedProfits = dailyProfitsA.map((profit, i) => (profit + dailyProfitsB[i]) / 2);
         const mean = combinedProfits.reduce((sum, val) => sum + val, 0) / combinedProfits.length;
         const volatility = this.calculateCombinedVolatility(dailyProfitsA, dailyProfitsB);
         return volatility === 0 ? 0 : mean / volatility;
     }
-    /**
-     * Calcula las métricas del portafolio combinado
-     */
     calculatePortfolioMetrics(strategyA, strategyB, correlation) {
         const combinedWinRate = (correlation.bothWinDays / strategyA.stats.totalDays) * 100;
         const combinedTotalProfit = (strategyA.stats.totalProfit + strategyB.stats.totalProfit) / 2;
@@ -182,9 +150,6 @@ class DeltaNeutralAnalyzer {
             diversificationBenefit
         };
     }
-    /**
-     * Genera la recomendación final
-     */
     generateRecommendation(strategyA, strategyB, correlation, portfolioMetrics) {
         let overallRecommendation = 'POOR';
         let confidence = 0;
@@ -240,40 +205,7 @@ class DeltaNeutralAnalyzer {
             riskLevel
         };
     }
-    /**
-     * Imprime un resumen del análisis
-     */
     printSummary(result) {
-        console.log('\n' + '='.repeat(80));
-        console.log('📊 RESUMEN DEL ANÁLISIS DELTA NEUTRAL');
-        console.log('='.repeat(80));
-        console.log(`\n🎯 ESTRATEGIA A: ${result.strategyA.pair}`);
-        console.log(`   • Recomendación: ${result.strategyA.recommendation}`);
-        console.log(`   • Win Rate: ${result.strategyA.stats.winRate.toFixed(1)}%`);
-        console.log(`   • Ganancia Total: ${result.strategyA.stats.totalProfit.toFixed(2)}%`);
-        console.log(`\n🎯 ESTRATEGIA B: ${result.strategyB.pair}`);
-        console.log(`   • Recomendación: ${result.strategyB.recommendation}`);
-        console.log(`   • Win Rate: ${result.strategyB.stats.winRate.toFixed(1)}%`);
-        console.log(`   • Ganancia Total: ${result.strategyB.stats.totalProfit.toFixed(2)}%`);
-        console.log(`\n🔗 CORRELACIÓN ENTRE ESTRATEGIAS:`);
-        console.log(`   • Días ambas ganan: ${result.correlation.bothWinDays}`);
-        console.log(`   • Días ambas pierden: ${result.correlation.bothLoseDays}`);
-        console.log(`   • Días A gana, B pierde: ${result.correlation.strategyAWinsStrategyBLoses}`);
-        console.log(`   • Días B gana, A pierde: ${result.correlation.strategyBWinsStrategyALoses}`);
-        console.log(`   • Correlación estadística: ${result.correlation.correlationCoefficient.toFixed(3)}`);
-        console.log(`   • Efectividad cobertura: ${result.correlation.hedgeEffectiveness.toFixed(1)}%`);
-        console.log(`\n📈 MÉTRICAS DEL PORTAFOLIO:`);
-        console.log(`   • Win Rate combinado: ${result.portfolioMetrics.combinedWinRate.toFixed(1)}%`);
-        console.log(`   • Ganancia total combinada: ${result.portfolioMetrics.combinedTotalProfit.toFixed(2)}%`);
-        console.log(`   • Volatilidad del portafolio: ${result.portfolioMetrics.portfolioVolatility.toFixed(2)}%`);
-        console.log(`   • Sharpe ratio del portafolio: ${result.portfolioMetrics.portfolioSharpeRatio.toFixed(3)}`);
-        console.log(`   • Reducción de riesgo: ${result.portfolioMetrics.riskReduction.toFixed(1)}%`);
-        console.log(`\n🎯 RECOMENDACIÓN FINAL:`);
-        console.log(`   • Evaluación: ${result.recommendation.overallRecommendation}`);
-        console.log(`   • Confianza: ${result.recommendation.confidence}%`);
-        console.log(`   • Nivel de riesgo: ${result.recommendation.riskLevel}`);
-        console.log(`   • Consejo: ${result.recommendation.advice}`);
-        console.log('\n' + '='.repeat(80));
     }
 }
 exports.DeltaNeutralAnalyzer = DeltaNeutralAnalyzer;

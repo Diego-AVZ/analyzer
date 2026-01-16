@@ -1,16 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiquidityRangeAnalyzer = void 0;
-/**
- * Analizador de rangos de liquidez para Uniswap
- */
 class LiquidityRangeAnalyzer {
-    /**
-     * Analiza un rango de liquidez específico
-     */
     analyzeLiquidityRange(tokenA, tokenB, klinesA, klinesB, rangeUpPercent, rangeDownPercent) {
-        console.log(`🔍 Analizando rango de liquidez para ${tokenA}/${tokenB}`);
-        console.log(`📊 Rango: +${rangeUpPercent}% / -${rangeDownPercent}%`);
         // Obtener precios actuales (último precio disponible)
         const currentPriceA = klinesA[klinesA.length - 1].close;
         const currentPriceB = klinesB[klinesB.length - 1].close;
@@ -22,9 +14,6 @@ class LiquidityRangeAnalyzer {
             min: currentPriceRatio * (1 - rangeDownPercent / 100),
             max: currentPriceRatio * (1 + rangeUpPercent / 100)
         };
-        console.log(`💰 Precios actuales: ${tokenA}=$${currentPriceA.toFixed(2)}, ${tokenB}=$${currentPriceB.toFixed(2)}`);
-        console.log(`📈 Ratio actual (${tokenA}/${tokenB}): ${currentPriceRatio.toFixed(6)}`);
-        console.log(`📊 Rango del ratio: ${priceRatioRange.min.toFixed(6)} - ${priceRatioRange.max.toFixed(6)}`);
         // Analizar datos históricos usando el ratio
         const historicalAnalysis = this.analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange);
         // Estimar impermanent loss
@@ -44,10 +33,6 @@ class LiquidityRangeAnalyzer {
             advice: recommendation.advice
         };
     }
-    /**
-     * Analiza los datos históricos para el rango especificado
-     * Ahora usa el ratio de precios (A/B) en lugar de precios absolutos
-     */
     analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange) {
         let daysInRange = 0;
         let daysOutOfRangeUp = 0;
@@ -94,12 +79,6 @@ class LiquidityRangeAnalyzer {
         const averageVolatility = volatilities.length > 0
             ? volatilities.reduce((sum, vol) => sum + vol, 0) / volatilities.length
             : 0;
-        console.log(`📊 Análisis histórico completado:`);
-        console.log(`   • Días en rango: ${daysInRange}/${totalDays} (${timeInRangePercentage.toFixed(1)}%)`);
-        console.log(`   • Salidas por arriba: ${daysOutOfRangeUp}`);
-        console.log(`   • Salidas por abajo: ${daysOutOfRangeDown}`);
-        console.log(`   • Volatilidad promedio del ratio: ${averageVolatility.toFixed(2)}%`);
-        console.log(`   • Máx. días consecutivos fuera: ${maxConsecutiveDaysOut}`);
         return {
             totalDays,
             daysInRange,
@@ -110,9 +89,6 @@ class LiquidityRangeAnalyzer {
             maxConsecutiveDaysOut
         };
     }
-    /**
-     * Estima el impermanent loss para diferentes escenarios
-     */
     estimateImpermanentLoss(rangeUpPercent, rangeDownPercent) {
         // Escenario 1: Precio sube al límite superior del rango
         const priceRatioUp = 1 + (rangeUpPercent / 100);
@@ -125,10 +101,6 @@ class LiquidityRangeAnalyzer {
         // Calcular fees necesarios para cubrir IL promedio
         const avgIL = (Math.abs(ilUp) + Math.abs(ilDown)) / 2;
         const feesNeededToCoverIL = avgIL * 1.2; // 20% de margen adicional
-        console.log(`💸 Estimación de Impermanent Loss:`);
-        console.log(`   • Escenario subida: ${ilUp.toFixed(2)}% IL`);
-        console.log(`   • Escenario bajada: ${ilDown.toFixed(2)}% IL`);
-        console.log(`   • Fees necesarios: ${feesNeededToCoverIL.toFixed(2)}%`);
         return {
             scenarioUp: {
                 priceRatio: priceRatioUp,
@@ -143,10 +115,6 @@ class LiquidityRangeAnalyzer {
             feesNeededToCoverIL
         };
     }
-    /**
-     * Calcula el impermanent loss para un ratio de precio dado
-     * Fórmula para liquidez concentrada: IL = 2 * sqrt(price_ratio) / (1 + price_ratio) - 1
-     */
     calculateImpermanentLoss(priceRatio) {
         if (priceRatio <= 0)
             return 0;
@@ -154,9 +122,6 @@ class LiquidityRangeAnalyzer {
         const il = (2 * sqrtRatio) / (1 + priceRatio) - 1;
         return il * 100; // Convertir a porcentaje
     }
-    /**
-     * Genera una recomendación basada en el análisis
-     */
     generateRecommendation(historicalAnalysis, impermanentLossEstimation) {
         const timeInRange = historicalAnalysis.timeInRangePercentage;
         const avgIL = (Math.abs(impermanentLossEstimation.scenarioUp.impermanentLoss) +
@@ -195,7 +160,6 @@ class LiquidityRangeAnalyzer {
                 El IL promedio es alto (${avgIL.toFixed(1)}%) y la volatilidad es elevada (${volatility.toFixed(1)}%). 
                 Recomendamos un rango más amplio o reconsiderar este par.`;
         }
-        console.log(`🎯 Recomendación generada: ${recommendation} (${confidence}% confianza)`);
         return { recommendation, confidence, advice };
     }
 }

@@ -60,14 +60,10 @@ export interface LiquidityRangeAnalysisResult {
   advice: string;
 }
 
-/**
- * Analizador de rangos de liquidez para Uniswap
- */
+
 export class LiquidityRangeAnalyzer {
   
-  /**
-   * Analiza un rango de liquidez específico
-   */
+  
   analyzeLiquidityRange(
     tokenA: string,
     tokenB: string,
@@ -76,8 +72,6 @@ export class LiquidityRangeAnalyzer {
     rangeUpPercent: number,
     rangeDownPercent: number
   ): LiquidityRangeAnalysisResult {
-    console.log(`🔍 Analizando rango de liquidez para ${tokenA}/${tokenB}`);
-    console.log(`📊 Rango: +${rangeUpPercent}% / -${rangeDownPercent}%`);
     
     // Obtener precios actuales (último precio disponible)
     const currentPriceA = klinesA[klinesA.length - 1].close;
@@ -93,9 +87,6 @@ export class LiquidityRangeAnalyzer {
       max: currentPriceRatio * (1 + rangeUpPercent / 100)
     };
     
-    console.log(`💰 Precios actuales: ${tokenA}=$${currentPriceA.toFixed(2)}, ${tokenB}=$${currentPriceB.toFixed(2)}`);
-    console.log(`📈 Ratio actual (${tokenA}/${tokenB}): ${currentPriceRatio.toFixed(6)}`);
-    console.log(`📊 Rango del ratio: ${priceRatioRange.min.toFixed(6)} - ${priceRatioRange.max.toFixed(6)}`);
     
     // Analizar datos históricos usando el ratio
     const historicalAnalysis = this.analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange);
@@ -120,10 +111,7 @@ export class LiquidityRangeAnalyzer {
     };
   }
   
-  /**
-   * Analiza los datos históricos para el rango especificado
-   * Ahora usa el ratio de precios (A/B) en lugar de precios absolutos
-   */
+  
   private analyzeHistoricalData(
     klinesA: ProcessedKline[],
     klinesB: ProcessedKline[],
@@ -190,12 +178,6 @@ export class LiquidityRangeAnalyzer {
       ? volatilities.reduce((sum, vol) => sum + vol, 0) / volatilities.length 
       : 0;
     
-    console.log(`📊 Análisis histórico completado:`);
-    console.log(`   • Días en rango: ${daysInRange}/${totalDays} (${timeInRangePercentage.toFixed(1)}%)`);
-    console.log(`   • Salidas por arriba: ${daysOutOfRangeUp}`);
-    console.log(`   • Salidas por abajo: ${daysOutOfRangeDown}`);
-    console.log(`   • Volatilidad promedio del ratio: ${averageVolatility.toFixed(2)}%`);
-    console.log(`   • Máx. días consecutivos fuera: ${maxConsecutiveDaysOut}`);
     
     return {
       totalDays,
@@ -208,9 +190,7 @@ export class LiquidityRangeAnalyzer {
     };
   }
   
-  /**
-   * Estima el impermanent loss para diferentes escenarios
-   */
+  
   private estimateImpermanentLoss(rangeUpPercent: number, rangeDownPercent: number): ImpermanentLossEstimation {
     // Escenario 1: Precio sube al límite superior del rango
     const priceRatioUp = 1 + (rangeUpPercent / 100);
@@ -226,10 +206,6 @@ export class LiquidityRangeAnalyzer {
     const avgIL = (Math.abs(ilUp) + Math.abs(ilDown)) / 2;
     const feesNeededToCoverIL = avgIL * 1.2; // 20% de margen adicional
     
-    console.log(`💸 Estimación de Impermanent Loss:`);
-    console.log(`   • Escenario subida: ${ilUp.toFixed(2)}% IL`);
-    console.log(`   • Escenario bajada: ${ilDown.toFixed(2)}% IL`);
-    console.log(`   • Fees necesarios: ${feesNeededToCoverIL.toFixed(2)}%`);
     
     return {
       scenarioUp: {
@@ -246,10 +222,7 @@ export class LiquidityRangeAnalyzer {
     };
   }
   
-  /**
-   * Calcula el impermanent loss para un ratio de precio dado
-   * Fórmula para liquidez concentrada: IL = 2 * sqrt(price_ratio) / (1 + price_ratio) - 1
-   */
+  
   private calculateImpermanentLoss(priceRatio: number): number {
     if (priceRatio <= 0) return 0;
     
@@ -258,9 +231,7 @@ export class LiquidityRangeAnalyzer {
     return il * 100; // Convertir a porcentaje
   }
   
-  /**
-   * Genera una recomendación basada en el análisis
-   */
+  
   private generateRecommendation(
     historicalAnalysis: {
       totalDays: number;
@@ -310,7 +281,6 @@ export class LiquidityRangeAnalyzer {
                 Recomendamos un rango más amplio o reconsiderar este par.`;
     }
     
-    console.log(`🎯 Recomendación generada: ${recommendation} (${confidence}% confianza)`);
     
     return { recommendation, confidence, advice };
   }

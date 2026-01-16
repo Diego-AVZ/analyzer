@@ -1,25 +1,17 @@
-/**
- * Ejemplos de uso del analizador de correlaciones
- */
+
 
 import { getConfig, addTokenPair, filterTokenPairs } from './config';
 import { BinanceCorrelationAnalyzer } from './index';
 
-/**
- * Ejemplo 1: Análisis básico con configuración por defecto
- */
+
 export async function ejemploBasico(): Promise<void> {
-  console.log('🚀 Ejemplo 1: Análisis básico con configuración por defecto');
   
   const analyzer = new BinanceCorrelationAnalyzer();
   await analyzer.run();
 }
 
-/**
- * Ejemplo 2: Análisis de pares específicos de DeFi
- */
+
 export async function ejemploDeFi(): Promise<void> {
-  console.log('🚀 Ejemplo 2: Análisis de tokens DeFi');
   
   // Crear configuración personalizada para DeFi
   let config = getConfig();
@@ -48,11 +40,8 @@ export async function ejemploDeFi(): Promise<void> {
   await analyzer.run();
 }
 
-/**
- * Ejemplo 3: Análisis de tokens de Layer 1
- */
+
 export async function ejemploLayer1(): Promise<void> {
-  console.log('🚀 Ejemplo 3: Análisis de tokens Layer 1');
   
   let config = getConfig();
   
@@ -78,11 +67,8 @@ export async function ejemploLayer1(): Promise<void> {
   await analyzer.run();
 }
 
-/**
- * Ejemplo 4: Análisis de tokens de gaming/NFT
- */
+
 export async function ejemploGamingNFT(): Promise<void> {
-  console.log('🚀 Ejemplo 4: Análisis de tokens Gaming/NFT');
   
   let config = getConfig();
   
@@ -106,11 +92,8 @@ export async function ejemploGamingNFT(): Promise<void> {
   await analyzer.run();
 }
 
-/**
- * Ejemplo 5: Análisis de tokens de almacenamiento descentralizado
- */
+
 export async function ejemploStorage(): Promise<void> {
-  console.log('🚀 Ejemplo 5: Análisis de tokens de almacenamiento');
   
   let config = getConfig();
   
@@ -131,30 +114,21 @@ export async function ejemploStorage(): Promise<void> {
   await analyzer.run();
 }
 
-/**
- * Función para ejecutar todos los ejemplos
- */
+
 export async function ejecutarTodosLosEjemplos(): Promise<void> {
-  console.log('🎯 Ejecutando todos los ejemplos de análisis...\n');
   
   try {
     await ejemploBasico();
-    console.log('\n' + '='.repeat(80) + '\n');
     
     await ejemploDeFi();
-    console.log('\n' + '='.repeat(80) + '\n');
     
     await ejemploLayer1();
-    console.log('\n' + '='.repeat(80) + '\n');
     
     await ejemploGamingNFT();
-    console.log('\n' + '='.repeat(80) + '\n');
     
     await ejemploStorage();
     
-    console.log('\n✅ Todos los ejemplos completados exitosamente!');
   } catch (error) {
-    console.error('❌ Error ejecutando ejemplos:', error);
   }
 }
 

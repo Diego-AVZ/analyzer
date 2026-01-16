@@ -1,15 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CorrelationAnalyzer = void 0;
-/**
- * Analizador de correlaciones inversas entre tokens
- */
 class CorrelationAnalyzer {
-    /**
-     * Analiza la correlación entre dos tokens
-     */
     analyzeCorrelation(tokenA, tokenB, klinesA, klinesB) {
-        console.log(`🔍 Analizando correlación entre ${tokenA} y ${tokenB}...`);
         const totalDays = klinesA.length;
         let validDays = 0;
         let inverseCorrelationDays = 0;
@@ -34,7 +27,6 @@ class CorrelationAnalyzer {
             const klineB = klinesB[i];
             // Verificar que los timestamps coincidan
             if (klineA.timestamp !== klineB.timestamp) {
-                console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${klineA.timestamp} vs ${klineB.timestamp}`);
                 continue;
             }
             validDays++;
@@ -126,12 +118,8 @@ class CorrelationAnalyzer {
             maxConsecutiveInverseDays,
             currentConsecutiveInverseDays
         };
-        console.log(`✅ Análisis completado para ${tokenA}/${tokenB}: ${validDays} días válidos`);
         return stats;
     }
-    /**
-     * Calcula el coeficiente de correlación de Pearson
-     */
     calculateCorrelationCoefficient(x, y) {
         if (x.length !== y.length || x.length === 0) {
             return 0;
@@ -146,9 +134,6 @@ class CorrelationAnalyzer {
         const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
         return denominator === 0 ? 0 : numerator / denominator;
     }
-    /**
-     * Calcula la volatilidad (desviación estándar)
-     */
     calculateVolatility(changes) {
         if (changes.length === 0)
             return 0;
@@ -156,9 +141,6 @@ class CorrelationAnalyzer {
         const variance = changes.reduce((sum, change) => sum + Math.pow(change - mean, 2), 0) / changes.length;
         return Math.sqrt(variance);
     }
-    /**
-     * Calcula un score de consistencia basado en la variabilidad de las diferencias
-     */
     calculateConsistencyScore(differences, averageDifference) {
         if (differences.length === 0)
             return 0;
@@ -168,9 +150,6 @@ class CorrelationAnalyzer {
         // Más consistente = menor desviación = mayor score
         return Math.max(0, 100 - (standardDeviation * 10));
     }
-    /**
-     * Genera recomendaciones basadas en las estadísticas
-     */
     generateRecommendation(stats) {
         let recommendation;
         let confidence = 0;
@@ -220,21 +199,15 @@ class CorrelationAnalyzer {
             strategyAdvice
         };
     }
-    /**
-     * Analiza múltiples pares de tokens
-     */
     analyzeMultiplePairs(tokenPairs) {
-        console.log(`🚀 Iniciando análisis de ${tokenPairs.length} pares de tokens...`);
         const results = [];
         tokenPairs.forEach((pair, index) => {
-            console.log(`\n📊 Analizando par ${index + 1}/${tokenPairs.length}: ${pair.tokenA}/${pair.tokenB}`);
             try {
                 const stats = this.analyzeCorrelation(pair.tokenA, pair.tokenB, pair.klinesA, pair.klinesB);
                 const result = this.generateRecommendation(stats);
                 results.push(result);
             }
             catch (error) {
-                console.error(`❌ Error analizando ${pair.tokenA}/${pair.tokenB}:`, error);
                 results.push({
                     pair: `${pair.tokenA}/${pair.tokenB}`,
                     stats: {},

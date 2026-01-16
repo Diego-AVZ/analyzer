@@ -38,9 +38,6 @@ const config_1 = require("./config");
 const binanceService_1 = require("./binanceService");
 const longShortAnalyzer_1 = require("./longShortAnalyzer");
 const reportGenerator_1 = require("./reportGenerator");
-/**
- * Script principal para analizar correlaciones inversas entre tokens de Binance
- */
 class BinanceCorrelationAnalyzer {
     constructor() {
         this.config = (0, config_1.getConfig)();
@@ -48,20 +45,10 @@ class BinanceCorrelationAnalyzer {
         this.longShortAnalyzer = new longShortAnalyzer_1.LongShortAnalyzer();
         this.reportGenerator = new reportGenerator_1.ReportGenerator();
     }
-    /**
-     * Ejecuta el análisis completo
-     */
     async run() {
         try {
-            console.log('🚀 Iniciando análisis de estrategias Long/Short de Binance...');
-            console.log(`📊 Configuración:`);
-            console.log(`   • Estrategias a analizar: ${this.config.tokenPairs.length}`);
-            console.log(`   • Intervalo: ${this.config.binanceApi.interval}`);
-            console.log(`   • Días: ${this.config.binanceApi.limit}`);
-            console.log(`   • Umbral correlación: ${this.config.analysis.correlationThreshold}`);
             // Obtener todos los símbolos únicos
             const allSymbols = this.getAllUniqueSymbols();
-            console.log(`\n🔍 Símbolos únicos a obtener: ${allSymbols.join(', ')}`);
             // Obtener datos de todos los símbolos
             const symbolData = await this.binanceService.getMultipleKlines(allSymbols);
             // Verificar que todos los datos se obtuvieron correctamente
@@ -69,7 +56,6 @@ class BinanceCorrelationAnalyzer {
                 .filter(([_, data]) => !data.success)
                 .map(([symbol, _]) => symbol);
             if (failedSymbols.length > 0) {
-                console.error(`❌ Error obteniendo datos para: ${failedSymbols.join(', ')}`);
                 return;
             }
             // Procesar datos y preparar para análisis
@@ -77,26 +63,19 @@ class BinanceCorrelationAnalyzer {
             // Preparar estrategias para análisis
             const strategiesToAnalyze = this.prepareStrategiesForAnalysis(processedData);
             if (strategiesToAnalyze.length === 0) {
-                console.error('❌ No hay estrategias válidas para analizar');
                 return;
             }
             // Realizar análisis
-            console.log(`\n🔬 Iniciando análisis de ${strategiesToAnalyze.length} estrategias Long/Short...`);
             const results = this.analyzeLongShortStrategies(strategiesToAnalyze);
             // Generar reportes
             this.reportGenerator.generateConsoleReport(results);
             // Guardar reportes en archivos
             await this.saveReports(results);
-            console.log('\n✅ Análisis completado exitosamente!');
         }
         catch (error) {
-            console.error('❌ Error durante el análisis:', error);
             throw error;
         }
     }
-    /**
-     * Obtiene todos los símbolos únicos de la configuración
-     */
     getAllUniqueSymbols() {
         const symbols = new Set();
         this.config.tokenPairs.forEach(pair => {
@@ -105,9 +84,6 @@ class BinanceCorrelationAnalyzer {
         });
         return Array.from(symbols);
     }
-    /**
-     * Procesa los datos de los símbolos
-     */
     processSymbolData(symbolData) {
         const processedData = new Map();
         symbolData.forEach((response, symbol) => {
@@ -116,18 +92,13 @@ class BinanceCorrelationAnalyzer {
                 if (this.binanceService.validateKlines(processedKlines)) {
                     const filteredKlines = this.binanceService.filterValidDays(processedKlines);
                     processedData.set(symbol, filteredKlines);
-                    console.log(`✅ ${symbol}: ${filteredKlines.length} días válidos procesados`);
                 }
                 else {
-                    console.error(`❌ Datos inválidos para ${symbol}`);
                 }
             }
         });
         return processedData;
     }
-    /**
-     * Prepara las estrategias para análisis
-     */
     prepareStrategiesForAnalysis(processedData) {
         const strategiesToAnalyze = [];
         this.config.tokenPairs.forEach(pair => {
@@ -143,33 +114,24 @@ class BinanceCorrelationAnalyzer {
                         longKlines: synchronizedA,
                         shortKlines: synchronizedB
                     });
-                    console.log(`✅ Estrategia LONG ${pair.longToken}/SHORT ${pair.shortToken}: ${synchronizedA.length} días sincronizados`);
                 }
                 else {
-                    console.warn(`⚠️ Estrategia LONG ${pair.longToken}/SHORT ${pair.shortToken}: Solo ${synchronizedA.length} días (mínimo: ${this.config.analysis.minDaysForAnalysis})`);
                 }
             }
             else {
-                console.error(`❌ Datos faltantes para estrategia LONG ${pair.longToken}/SHORT ${pair.shortToken}`);
             }
         });
         return strategiesToAnalyze;
     }
-    /**
-     * Analiza múltiples estrategias Long/Short
-     */
     analyzeLongShortStrategies(strategies) {
-        console.log(`🚀 Iniciando análisis de ${strategies.length} estrategias Long/Short...`);
         const results = [];
         strategies.forEach((strategy, index) => {
-            console.log(`\n📊 Analizando estrategia ${index + 1}/${strategies.length}: LONG ${strategy.longToken}/SHORT ${strategy.shortToken}`);
             try {
                 const stats = this.longShortAnalyzer.analyzeLongShortStrategy(strategy.longToken, strategy.shortToken, strategy.longKlines, strategy.shortKlines);
                 const result = this.longShortAnalyzer.generateRecommendation(stats);
                 results.push(result);
             }
             catch (error) {
-                console.error(`❌ Error analizando LONG ${strategy.longToken}/SHORT ${strategy.shortToken}:`, error);
                 results.push({
                     pair: `LONG ${strategy.longToken}/SHORT ${strategy.shortToken}`,
                     stats: {},
@@ -180,9 +142,6 @@ class BinanceCorrelationAnalyzer {
         });
         return results;
     }
-    /**
-     * Guarda los reportes en archivos
-     */
     async saveReports(results) {
         try {
             const fs = await Promise.resolve().then(() => __importStar(require('fs/promises')));
@@ -200,29 +159,22 @@ class BinanceCorrelationAnalyzer {
             const jsonReport = this.reportGenerator.generateJSONReport(results);
             const jsonPath = path.join(reportsDir, `correlation-analysis-${timestamp}.json`);
             await fs.writeFile(jsonPath, jsonReport, 'utf8');
-            console.log(`📄 Reporte JSON guardado: ${jsonPath}`);
             // Guardar reporte CSV
             const csvReport = this.reportGenerator.generateCSVReport(results);
             const csvPath = path.join(reportsDir, `correlation-analysis-${timestamp}.csv`);
             await fs.writeFile(csvPath, csvReport, 'utf8');
-            console.log(`📊 Reporte CSV guardado: ${csvPath}`);
         }
         catch (error) {
-            console.error('❌ Error guardando reportes:', error);
         }
     }
 }
 exports.BinanceCorrelationAnalyzer = BinanceCorrelationAnalyzer;
-/**
- * Función principal
- */
 async function main() {
     try {
         const analyzer = new BinanceCorrelationAnalyzer();
         await analyzer.run();
     }
     catch (error) {
-        console.error('💥 Error fatal:', error);
         process.exit(1);
     }
 }

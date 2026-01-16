@@ -1,15 +1,10 @@
 import { ProcessedKline, CorrelationStats, AnalysisResult, TokenData } from './types';
 
-/**
- * Analizador de correlaciones inversas entre tokens
- */
+
 export class CorrelationAnalyzer {
   
-  /**
-   * Analiza la correlación entre dos tokens
-   */
+  
   analyzeCorrelation(tokenA: string, tokenB: string, klinesA: ProcessedKline[], klinesB: ProcessedKline[]): CorrelationStats {
-    console.log(`🔍 Analizando correlación entre ${tokenA} y ${tokenB}...`);
     
     const totalDays = klinesA.length;
     let validDays = 0;
@@ -41,7 +36,6 @@ export class CorrelationAnalyzer {
       
       // Verificar que los timestamps coincidan
       if (klineA.timestamp !== klineB.timestamp) {
-        console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${klineA.timestamp} vs ${klineB.timestamp}`);
         continue;
       }
 
@@ -148,13 +142,10 @@ export class CorrelationAnalyzer {
       currentConsecutiveInverseDays
     };
 
-    console.log(`✅ Análisis completado para ${tokenA}/${tokenB}: ${validDays} días válidos`);
     return stats;
   }
 
-  /**
-   * Calcula el coeficiente de correlación de Pearson
-   */
+  
   private calculateCorrelationCoefficient(x: number[], y: number[]): number {
     if (x.length !== y.length || x.length === 0) {
       return 0;
@@ -173,9 +164,7 @@ export class CorrelationAnalyzer {
     return denominator === 0 ? 0 : numerator / denominator;
   }
 
-  /**
-   * Calcula la volatilidad (desviación estándar)
-   */
+  
   private calculateVolatility(changes: number[]): number {
     if (changes.length === 0) return 0;
     
@@ -185,9 +174,7 @@ export class CorrelationAnalyzer {
     return Math.sqrt(variance);
   }
 
-  /**
-   * Calcula un score de consistencia basado en la variabilidad de las diferencias
-   */
+  
   private calculateConsistencyScore(differences: number[], averageDifference: number): number {
     if (differences.length === 0) return 0;
     
@@ -199,9 +186,7 @@ export class CorrelationAnalyzer {
     return Math.max(0, 100 - (standardDeviation * 10));
   }
 
-  /**
-   * Genera recomendaciones basadas en las estadísticas
-   */
+  
   generateRecommendation(stats: CorrelationStats): AnalysisResult {
     let recommendation: 'STRONG_INVERSE' | 'MODERATE_INVERSE' | 'WEAK_INVERSE' | 'NO_CORRELATION';
     let confidence = 0;
@@ -252,23 +237,18 @@ export class CorrelationAnalyzer {
     };
   }
 
-  /**
-   * Analiza múltiples pares de tokens
-   */
+  
   analyzeMultiplePairs(tokenPairs: Array<{tokenA: string, tokenB: string, klinesA: ProcessedKline[], klinesB: ProcessedKline[]}>): AnalysisResult[] {
-    console.log(`🚀 Iniciando análisis de ${tokenPairs.length} pares de tokens...`);
     
     const results: AnalysisResult[] = [];
     
     tokenPairs.forEach((pair, index) => {
-      console.log(`\n📊 Analizando par ${index + 1}/${tokenPairs.length}: ${pair.tokenA}/${pair.tokenB}`);
       
       try {
         const stats = this.analyzeCorrelation(pair.tokenA, pair.tokenB, pair.klinesA, pair.klinesB);
         const result = this.generateRecommendation(stats);
         results.push(result);
       } catch (error) {
-        console.error(`❌ Error analizando ${pair.tokenA}/${pair.tokenB}:`, error);
         results.push({
           pair: `${pair.tokenA}/${pair.tokenB}`,
           stats: {} as CorrelationStats,

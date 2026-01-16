@@ -1,7 +1,4 @@
 "use strict";
-/**
- * Ejemplos de uso del analizador de correlaciones
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ejemploBasico = ejemploBasico;
 exports.ejemploDeFi = ejemploDeFi;
@@ -11,19 +8,11 @@ exports.ejemploStorage = ejemploStorage;
 exports.ejecutarTodosLosEjemplos = ejecutarTodosLosEjemplos;
 const config_1 = require("./config");
 const index_1 = require("./index");
-/**
- * Ejemplo 1: Análisis básico con configuración por defecto
- */
 async function ejemploBasico() {
-    console.log('🚀 Ejemplo 1: Análisis básico con configuración por defecto');
     const analyzer = new index_1.BinanceCorrelationAnalyzer();
     await analyzer.run();
 }
-/**
- * Ejemplo 2: Análisis de pares específicos de DeFi
- */
 async function ejemploDeFi() {
-    console.log('🚀 Ejemplo 2: Análisis de tokens DeFi');
     // Crear configuración personalizada para DeFi
     let config = (0, config_1.getConfig)();
     // Añadir pares DeFi específicos
@@ -45,11 +34,7 @@ async function ejemploDeFi() {
     // Nota: En una implementación real, necesitarías pasar la configuración al constructor
     await analyzer.run();
 }
-/**
- * Ejemplo 3: Análisis de tokens de Layer 1
- */
 async function ejemploLayer1() {
-    console.log('🚀 Ejemplo 3: Análisis de tokens Layer 1');
     let config = (0, config_1.getConfig)();
     // Añadir pares de Layer 1
     config = (0, config_1.addTokenPair)(config, 'SOLUSDT', 'AVAXUSDT', 'Solana vs Avalanche');
@@ -68,11 +53,7 @@ async function ejemploLayer1() {
     const analyzer = new index_1.BinanceCorrelationAnalyzer();
     await analyzer.run();
 }
-/**
- * Ejemplo 4: Análisis de tokens de gaming/NFT
- */
 async function ejemploGamingNFT() {
-    console.log('🚀 Ejemplo 4: Análisis de tokens Gaming/NFT');
     let config = (0, config_1.getConfig)();
     // Añadir pares Gaming/NFT
     config = (0, config_1.addTokenPair)(config, 'AXSUSDT', 'SANDUSDT', 'Axie Infinity vs The Sandbox');
@@ -89,11 +70,7 @@ async function ejemploGamingNFT() {
     const analyzer = new index_1.BinanceCorrelationAnalyzer();
     await analyzer.run();
 }
-/**
- * Ejemplo 5: Análisis de tokens de almacenamiento descentralizado
- */
 async function ejemploStorage() {
-    console.log('🚀 Ejemplo 5: Análisis de tokens de almacenamiento');
     let config = (0, config_1.getConfig)();
     // Añadir pares de almacenamiento
     config = (0, config_1.addTokenPair)(config, 'FILUSDT', 'ARUSDT', 'Filecoin vs Arweave');
@@ -107,25 +84,15 @@ async function ejemploStorage() {
     const analyzer = new index_1.BinanceCorrelationAnalyzer();
     await analyzer.run();
 }
-/**
- * Función para ejecutar todos los ejemplos
- */
 async function ejecutarTodosLosEjemplos() {
-    console.log('🎯 Ejecutando todos los ejemplos de análisis...\n');
     try {
         await ejemploBasico();
-        console.log('\n' + '='.repeat(80) + '\n');
         await ejemploDeFi();
-        console.log('\n' + '='.repeat(80) + '\n');
         await ejemploLayer1();
-        console.log('\n' + '='.repeat(80) + '\n');
         await ejemploGamingNFT();
-        console.log('\n' + '='.repeat(80) + '\n');
         await ejemploStorage();
-        console.log('\n✅ Todos los ejemplos completados exitosamente!');
     }
     catch (error) {
-        console.error('❌ Error ejecutando ejemplos:', error);
     }
 }
 // Ejecutar ejemplos si es el archivo principal

@@ -1,13 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdvancedMetrics = void 0;
-/**
- * Métricas avanzadas para estrategias de trading basadas en correlaciones inversas
- */
 class AdvancedMetrics {
-    /**
-     * Calcula métricas de momentum y reversión
-     */
     calculateMomentumMetrics(klinesA, klinesB) {
         if (klinesA.length < 5 || klinesB.length < 5) {
             return { aMomentum: 0, bMomentum: 0, momentumDivergence: 0, reversalProbability: 0 };
@@ -22,9 +16,6 @@ class AdvancedMetrics {
         const reversalProbability = Math.min(100, momentumDivergence * 10);
         return { aMomentum, bMomentum, momentumDivergence, reversalProbability };
     }
-    /**
-     * Analiza patrones de volumen para detectar señales
-     */
     calculateVolumeMetrics(klinesA, klinesB) {
         if (klinesA.length < 10 || klinesB.length < 10) {
             return { aVolumeTrend: 0, bVolumeTrend: 0, volumeCorrelation: 0, volumeSignal: 'LOW' };
@@ -52,9 +43,6 @@ class AdvancedMetrics {
         }
         return { aVolumeTrend, bVolumeTrend, volumeCorrelation, volumeSignal };
     }
-    /**
-     * Calcula métricas de volatilidad implícita
-     */
     calculateVolatilityMetrics(klinesA, klinesB) {
         if (klinesA.length < 20 || klinesB.length < 20) {
             return {
@@ -92,9 +80,6 @@ class AdvancedMetrics {
         const volatilityExpansion = (volLast10A > volPrev10A * 1.2) || (volLast10B > volPrev10B * 1.2);
         return { aVolatility, bVolatility, volatilityRatio, volatilityRegime, volatilityExpansion };
     }
-    /**
-     * Calcula señales de entrada y salida para estrategias
-     */
     calculateTradingSignals(klinesA, klinesB, stats) {
         if (klinesA.length < 5 || klinesB.length < 5) {
             return {
@@ -150,9 +135,6 @@ class AdvancedMetrics {
             expectedReturn
         };
     }
-    /**
-     * Calcula métricas de drawdown y riesgo
-     */
     calculateRiskMetrics(klinesA, klinesB) {
         if (klinesA.length < 30 || klinesB.length < 30) {
             return {
@@ -190,9 +172,6 @@ class AdvancedMetrics {
             riskAdjustedReturn
         };
     }
-    /**
-     * Métodos auxiliares
-     */
     calculateCorrelation(x, y) {
         if (x.length !== y.length || x.length === 0)
             return 0;

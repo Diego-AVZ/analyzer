@@ -151,6 +151,6 @@ process.on('SIGTERM', () => {
 
 bot.connect();
 
-setTimeout(() => {
+ setTimeout(() => {
   bot.setFilterTerm('fractal');
 }, 10000);

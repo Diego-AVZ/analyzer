@@ -515,9 +515,12 @@ app.post('/api/liquidity-range', async (req, res) => {
 
 app.get('/api/tokens', (req, res) => {
   const tokens = [
-    'ETHUSDT', 'BTCUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT', 
-    'CAKEUSDT', 'DYDXUSDT', 'SUIUSDT', 'XLMUSDT', 'PEPEUSDT', 'OPUSDT',
-    'GMXUSDT', 'DOTUSDT', 'ARBUSDT', 'LDOUSDT', 'LINKUSDT'
+    'BTCUSDT', 'ETHUSDT', 'LINKUSDT', 'SOLUSDT', 'DOTUSDT', 'AVAXUSDT',
+    'BNBUSDT', 'DOGEUSDT', 'PEPEUSDT', 'WIFUSDT', 'PENDLEUSDT', 'ARBUSDT',
+    'OPUSDT', 'APEUSDT', 'GMXUSDT', 'AAVEUSDT', 'UNIUSDT', 'ADAUSDT',
+    'TAOUSDT', 'ATOMUSDT', 'LDOUSDT', 'NEARUSDT', 'TIAUSDT', 'CAKEUSDT',
+    'ZROUSDT', 'TRUMPUSDT', 'APTUSDT', 'INJUSDT', 'CRVUSDT', 'XRPUSDT',
+    'DYDXUSDT', 'SUIUSDT', 'XLMUSDT'
   ];
   
   res.json(tokens);

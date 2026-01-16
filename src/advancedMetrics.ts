@@ -1,13 +1,9 @@
 import { ProcessedKline, CorrelationStats } from './types';
 
-/**
- * Métricas avanzadas para estrategias de trading basadas en correlaciones inversas
- */
+
 export class AdvancedMetrics {
   
-  /**
-   * Calcula métricas de momentum y reversión
-   */
+  
   calculateMomentumMetrics(klinesA: ProcessedKline[], klinesB: ProcessedKline[]): {
     aMomentum: number;
     bMomentum: number;
@@ -33,9 +29,7 @@ export class AdvancedMetrics {
     return { aMomentum, bMomentum, momentumDivergence, reversalProbability };
   }
 
-  /**
-   * Analiza patrones de volumen para detectar señales
-   */
+  
   calculateVolumeMetrics(klinesA: ProcessedKline[], klinesB: ProcessedKline[]): {
     aVolumeTrend: number;
     bVolumeTrend: number;
@@ -77,9 +71,7 @@ export class AdvancedMetrics {
     return { aVolumeTrend, bVolumeTrend, volumeCorrelation, volumeSignal };
   }
 
-  /**
-   * Calcula métricas de volatilidad implícita
-   */
+  
   calculateVolatilityMetrics(klinesA: ProcessedKline[], klinesB: ProcessedKline[]): {
     aVolatility: number;
     bVolatility: number;
@@ -131,9 +123,7 @@ export class AdvancedMetrics {
     return { aVolatility, bVolatility, volatilityRatio, volatilityRegime, volatilityExpansion };
   }
 
-  /**
-   * Calcula señales de entrada y salida para estrategias
-   */
+  
   calculateTradingSignals(klinesA: ProcessedKline[], klinesB: ProcessedKline[], stats: CorrelationStats): {
     entrySignal: 'LONG_A_SHORT_B' | 'LONG_B_SHORT_A' | 'NEUTRAL';
     exitSignal: 'CLOSE_ALL' | 'HOLD';
@@ -203,9 +193,7 @@ export class AdvancedMetrics {
     };
   }
 
-  /**
-   * Calcula métricas de drawdown y riesgo
-   */
+  
   calculateRiskMetrics(klinesA: ProcessedKline[], klinesB: ProcessedKline[]): {
     maxDrawdownA: number;
     maxDrawdownB: number;
@@ -258,9 +246,7 @@ export class AdvancedMetrics {
     };
   }
 
-  /**
-   * Métodos auxiliares
-   */
+  
   private calculateCorrelation(x: number[], y: number[]): number {
     if (x.length !== y.length || x.length === 0) return 0;
     

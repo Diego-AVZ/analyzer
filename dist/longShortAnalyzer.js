@@ -1,15 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LongShortAnalyzer = void 0;
-/**
- * Analizador específico para estrategias Long/Short
- */
 class LongShortAnalyzer {
-    /**
-     * Analiza la estrategia Long/Short entre dos tokens
-     */
     analyzeLongShortStrategy(longToken, shortToken, longKlines, shortKlines) {
-        console.log(`🔍 Analizando estrategia LONG ${longToken} vs SHORT ${shortToken}...`);
         const totalDays = longKlines.length;
         let validDays = 0;
         let winningDays = 0;
@@ -29,7 +22,6 @@ class LongShortAnalyzer {
             const longKline = longKlines[i];
             const shortKline = shortKlines[i];
             if (longKline.timestamp !== shortKline.timestamp) {
-                console.warn(`⚠️ Timestamps no coinciden en día ${i}: ${longKline.timestamp} vs ${shortKline.timestamp}`);
                 continue;
             }
             validDays++;
@@ -137,12 +129,8 @@ class LongShortAnalyzer {
             rsi
         };
         stats.recommendation = this.calculateRecommendationScore(stats);
-        console.log(`✅ Análisis completado para LONG ${longToken}/SHORT ${shortToken}: ${validDays} días válidos, ${winningDays} días ganadores (${winRate.toFixed(1)}%)`);
         return stats;
     }
-    /**
-     * Genera recomendaciones basadas en las estadísticas de la estrategia
-     */
     generateRecommendation(stats) {
         let recommendation;
         let confidence = 0;
@@ -173,9 +161,6 @@ class LongShortAnalyzer {
             confidence
         };
     }
-    /**
-     * Métodos auxiliares
-     */
     calculateVolatility(returns) {
         if (returns.length === 0)
             return 0;
