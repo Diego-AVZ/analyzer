@@ -1,4 +1,0 @@
-Estrategia,Recomendacion,Confianza,DiasValidos,DiasGanadores,DiasPerdedores,WinRate%,LossRate%,GananciaTotal%,GananciaPromedioDiaria%,GananciaMaximaDia%,PerdidaMaximaDia%,MaxConsecutivoGanador,MaxConsecutivoPerdedor,VolatilidadGanancias%,SharpeRatio,MaxDrawdown%,ConsistenciaScore
-LONG ETHUSDT/SHORT ARBUSDT,HOLD,61.42,200,116,84,58.00,42.00,34.20,0.17,12.09,-17.74,7,5,3.39,0.05,25.45,66.1
-LONG ETHUSDT/SHORT LDOUSDT,HOLD,58.83,200,109,91,54.50,45.50,43.30,0.22,7.12,-12.04,7,6,3.04,0.07,36.12,69.6
-LONG LINKUSDT/SHORT GMXUSDT,HOLD,58.24,200,107,93,53.50,46.50,47.39,0.24,16.58,-25.61,7,6,4.10,0.06,41.58,59.0

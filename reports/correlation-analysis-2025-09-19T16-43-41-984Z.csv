@@ -1,3 +1,0 @@
-Estrategia,Recomendacion,Confianza,DiasValidos,DiasGanadores,DiasPerdedores,WinRate%,LossRate%,GananciaTotal%,GananciaPromedioDiaria%,GananciaMaximaDia%,PerdidaMaximaDia%,MaxConsecutivoGanador,MaxConsecutivoPerdedor,VolatilidadGanancias%,SharpeRatio,MaxDrawdown%,ConsistenciaScore
-LONG ETHUSDT/SHORT OPUSDT,BUY,62.98,200,110,90,55.00,45.00,79.79,0.40,11.36,-9.42,10,5,3.26,0.12,19.18,67.4
-LONG ETHUSDT/SHORT ORDIUSDT,HOLD,60.12,200,108,92,54.00,46.00,61.22,0.31,18.12,-11.67,7,5,4.06,0.08,25.98,59.4

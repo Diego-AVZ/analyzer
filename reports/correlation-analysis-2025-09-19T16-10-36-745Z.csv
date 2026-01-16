@@ -1,3 +1,0 @@
-Par,Recomendacion,Confianza,DiasValidos,CorrelacionInversa%,DiasOpuestos%,TokenA_Supera%,TokenB_Supera%,DiferenciaPromedio%,CoeficienteCorrelacion,VolatilidadA%,VolatilidadB%,MaxConsecutivoInverso,ConsistenciaScore
-ARBUSDT/ETHUSDT,NO_CORRELATION,91.50,200,8.50,15.50,42.00,58.00,-0.17,0.820,5.77,3.98,2,66.1
-DOTUSDT/ETHUSDT,NO_CORRELATION,88.50,200,11.50,19.00,45.50,54.50,-0.38,0.821,3.71,3.98,2,76.9

@@ -1,2 +1,0 @@
-Estrategia,Recomendacion,Confianza,DiasValidos,DiasGanadores,DiasPerdedores,WinRate%,LossRate%,GananciaTotal%,GananciaPromedioDiaria%,GananciaMaximaDia%,PerdidaMaximaDia%,MaxConsecutivoGanador,MaxConsecutivoPerdedor,VolatilidadGanancias%,SharpeRatio,MaxDrawdown%,ConsistenciaScore
-LONG BTCUSDT/SHORT ETHUSDT,SELL,53.04,200,105,95,52.50,47.50,-55.39,-0.28,6.36,-15.46,6,8,2.73,-0.10,93.05,72.7

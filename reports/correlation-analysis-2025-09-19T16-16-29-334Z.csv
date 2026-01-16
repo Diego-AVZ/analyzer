@@ -1,2 +1,0 @@
-Par,Recomendacion,Confianza,DiasValidos,CorrelacionInversa%,DiasOpuestos%,TokenA_Supera%,TokenB_Supera%,DiferenciaPromedio%,CoeficienteCorrelacion,VolatilidadA%,VolatilidadB%,MaxConsecutivoInverso,ConsistenciaScore
-BTCUSDT/CRVUSDT,NO_CORRELATION,89.00,200,11.00,24.00,52.50,47.50,-0.29,0.653,2.02,5.45,2,55.9
