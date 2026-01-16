@@ -342,7 +342,7 @@ Currently, no rate limiting is implemented. Use responsibly.
 
 Price data is sourced from Binance public API (`https://api.binance.com/api/v3/klines`).
 
-```
+<!--
   █████████                                   █████                          
  ███▒▒▒▒▒███                                 ▒▒███                           
 ▒███    ▒▒▒      ██████     ████████       ███████     ████████      ██████  
