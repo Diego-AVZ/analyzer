@@ -76,9 +76,9 @@ class LongShortAnalyzer {
             const lastLongKline = longKlines[longKlines.length - 1];
             const firstShortKline = shortKlines[0];
             const lastShortKline = shortKlines[shortKlines.length - 1];
-            if (firstLongKline.open > 0 && firstShortKline.open > 0) {
-                const longChange = ((lastLongKline.close - firstLongKline.open) / firstLongKline.open) * 100;
-                const shortChange = ((lastShortKline.close - firstShortKline.open) / firstShortKline.open) * 100;
+            if (firstLongKline.close > 0 && firstShortKline.close > 0) {
+                const longChange = ((lastLongKline.close - firstLongKline.close) / firstLongKline.close) * 100;
+                const shortChange = ((lastShortKline.close - firstShortKline.close) / firstShortKline.close) * 100;
                 totalProfitFromPrices = longChange - shortChange;
             }
         }
