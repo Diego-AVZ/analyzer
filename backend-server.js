@@ -241,11 +241,11 @@ function calculateAPR(metrics) {
     const metric = metrics[period];
     if (metric && metric.validDays >= 30) {
       const days = metric.validDays;
-      const totalProfit = metric.totalProfit;
+      const totalProfitFromPrices = metric.totalProfitFromPrices !== undefined ? metric.totalProfitFromPrices : metric.totalProfit;
       
-      if (days === 0 || totalProfit === 0) return 0;
+      if (days === 0) return 0;
       
-      const apr = (totalProfit / days) * 365;
+      const apr = (totalProfitFromPrices / days) * 365;
       
       return Math.round(apr * 10) / 10;
     }
@@ -754,6 +754,7 @@ app.get('/api/strategy-bundles', async (req, res) => {
                 pairResults.metrics[`${period}d`] = {
                   winRate: stats.winRate,
                   totalProfit: stats.totalProfit,
+                  totalProfitFromPrices: stats.totalProfitFromPrices,
                   averageDailyProfit: stats.averageDailyProfit,
                   sharpeRatio: stats.sharpeRatio,
                   consistencyScore: stats.consistencyScore,

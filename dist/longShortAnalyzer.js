@@ -93,6 +93,19 @@ class LongShortAnalyzer {
         const maxDrawdown = this.calculateMaxDrawdown(dailyReturns);
         // Calcular consistencia (qué tan consistente es la estrategia)
         const consistencyScore = this.calculateConsistencyScore(dailyProfits, averageDailyProfit);
+        // Calcular profit total desde precios iniciales y finales
+        let totalProfitFromPrices = 0;
+        if (longKlines.length > 0 && shortKlines.length > 0) {
+            const firstLongKline = longKlines[0];
+            const lastLongKline = longKlines[longKlines.length - 1];
+            const firstShortKline = shortKlines[0];
+            const lastShortKline = shortKlines[shortKlines.length - 1];
+            if (firstLongKline.open > 0 && firstShortKline.open > 0) {
+                const longChange = ((lastLongKline.close - firstLongKline.open) / firstLongKline.open) * 100;
+                const shortChange = ((lastShortKline.close - firstShortKline.open) / firstShortKline.open) * 100;
+                totalProfitFromPrices = longChange - shortChange;
+            }
+        }
         const consecutiveWins = this.calculateConsecutiveDays(dailyProfits, 'WIN');
         const consecutiveLoss = this.calculateConsecutiveDays(dailyProfits, 'LOSS');
         const consecutivePercentageWins = this.calculateConsecutivePercentage(dailyProfits, 'WIN');
@@ -112,6 +125,7 @@ class LongShortAnalyzer {
             winRate,
             lossRate,
             totalProfit,
+            totalProfitFromPrices,
             averageDailyProfit,
             averageDailyGain,
             averageDailyLoss,
