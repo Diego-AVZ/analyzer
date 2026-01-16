@@ -13,16 +13,13 @@ export async function ejemploBasico(): Promise<void> {
 
 export async function ejemploDeFi(): Promise<void> {
   
-  // Crear configuración personalizada para DeFi
   let config = getConfig();
   
-  // Añadir pares DeFi específicos
   config = addTokenPair(config, 'UNIUSDT', 'SUSHIUSDT', 'Uniswap vs SushiSwap');
   config = addTokenPair(config, 'AAVEUSDT', 'COMPUSDT', 'Aave vs Compound');
   config = addTokenPair(config, 'CRVUSDT', 'BALUSDT', 'Curve vs Balancer');
   config = addTokenPair(config, 'YFIUSDT', 'SUSHIUSDT', 'Yearn vs SushiSwap');
   
-  // Filtrar solo pares DeFi
   config = filterTokenPairs(config, pair => 
     pair.longToken.includes('UNI') || pair.longToken.includes('SUSHI') || 
     pair.longToken.includes('AAVE') || pair.longToken.includes('COMP') ||
@@ -34,9 +31,7 @@ export async function ejemploDeFi(): Promise<void> {
     pair.shortToken.includes('YFI')
   );
   
-  // Crear analizador con configuración personalizada
   const analyzer = new BinanceCorrelationAnalyzer();
-  // Nota: En una implementación real, necesitarías pasar la configuración al constructor
   await analyzer.run();
 }
 
@@ -45,13 +40,11 @@ export async function ejemploLayer1(): Promise<void> {
   
   let config = getConfig();
   
-  // Añadir pares de Layer 1
   config = addTokenPair(config, 'SOLUSDT', 'AVAXUSDT', 'Solana vs Avalanche');
   config = addTokenPair(config, 'DOTUSDT', 'ADAUSDT', 'Polkadot vs Cardano');
   config = addTokenPair(config, 'MATICUSDT', 'FTMUSDT', 'Polygon vs Fantom');
   config = addTokenPair(config, 'NEARUSDT', 'ALGOUSDT', 'NEAR vs Algorand');
   
-  // Filtrar solo Layer 1
   config = filterTokenPairs(config, pair => 
     pair.longToken.includes('SOL') || pair.longToken.includes('AVAX') || 
     pair.longToken.includes('DOT') || pair.longToken.includes('ADA') ||
@@ -72,13 +65,11 @@ export async function ejemploGamingNFT(): Promise<void> {
   
   let config = getConfig();
   
-  // Añadir pares Gaming/NFT
   config = addTokenPair(config, 'AXSUSDT', 'SANDUSDT', 'Axie Infinity vs The Sandbox');
   config = addTokenPair(config, 'MANAUSDT', 'ENJUSDT', 'Decentraland vs Enjin');
   config = addTokenPair(config, 'GALAUSDT', 'ILVUSDT', 'Gala vs Illuvium');
   config = addTokenPair(config, 'SANDUSDT', 'MANAUSDT', 'The Sandbox vs Decentraland');
   
-  // Filtrar solo Gaming/NFT
   config = filterTokenPairs(config, pair => 
     pair.longToken.includes('AXS') || pair.longToken.includes('SAND') || 
     pair.longToken.includes('MANA') || pair.longToken.includes('ENJ') ||
@@ -97,12 +88,10 @@ export async function ejemploStorage(): Promise<void> {
   
   let config = getConfig();
   
-  // Añadir pares de almacenamiento
   config = addTokenPair(config, 'FILUSDT', 'ARUSDT', 'Filecoin vs Arweave');
   config = addTokenPair(config, 'SCUSDT', 'STORJUSDT', 'Siacoin vs Storj');
   config = addTokenPair(config, 'FILUSDT', 'SCUSDT', 'Filecoin vs Siacoin');
   
-  // Filtrar solo almacenamiento
   config = filterTokenPairs(config, pair => 
     pair.longToken.includes('FIL') || pair.longToken.includes('AR') || 
     pair.longToken.includes('SC') || pair.longToken.includes('STORJ') ||
@@ -132,7 +121,6 @@ export async function ejecutarTodosLosEjemplos(): Promise<void> {
   }
 }
 
-// Ejecutar ejemplos si es el archivo principal
 if (require.main === module) {
   ejecutarTodosLosEjemplos();
 }

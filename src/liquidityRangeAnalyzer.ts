@@ -73,28 +73,21 @@ export class LiquidityRangeAnalyzer {
     rangeDownPercent: number
   ): LiquidityRangeAnalysisResult {
     
-    // Obtener precios actuales (último precio disponible)
     const currentPriceA = klinesA[klinesA.length - 1].close;
     const currentPriceB = klinesB[klinesB.length - 1].close;
     
-    // Calcular el ratio de precios actual (A/B) - precio de A en términos de B
-    // Esto es lo que realmente importa en Uniswap V3
     const currentPriceRatio = currentPriceB !== 0 ? currentPriceA / currentPriceB : 0;
     
-    // Calcular el rango del ratio basado en porcentajes
     const priceRatioRange = {
       min: currentPriceRatio * (1 - rangeDownPercent / 100),
       max: currentPriceRatio * (1 + rangeUpPercent / 100)
     };
     
     
-    // Analizar datos históricos usando el ratio
     const historicalAnalysis = this.analyzeHistoricalData(klinesA, klinesB, currentPriceRatio, priceRatioRange);
     
-    // Estimar impermanent loss
     const impermanentLossEstimation = this.estimateImpermanentLoss(rangeUpPercent, rangeDownPercent);
     
-    // Generar recomendación
     const recommendation = this.generateRecommendation(historicalAnalysis, impermanentLossEstimation);
     
     return {
@@ -138,10 +131,8 @@ export class LiquidityRangeAnalyzer {
       const priceA = klinesA[i].close;
       const priceB = klinesB[i].close;
       
-      // Calcular el ratio de precios histórico (A/B)
       const historicalPriceRatio = priceB !== 0 ? priceA / priceB : 0;
       
-      // Calcular volatilidad del ratio (cambio porcentual del ratio)
       let ratioVolatility = 0;
       if (i > 0) {
         const prevPriceA = klinesA[i - 1].close;
@@ -153,7 +144,6 @@ export class LiquidityRangeAnalyzer {
       }
       volatilities.push(ratioVolatility);
       
-      // Verificar si el ratio está en rango
       const ratioInRange = historicalPriceRatio >= priceRatioRange.min && historicalPriceRatio <= priceRatioRange.max;
       
       if (ratioInRange) {
@@ -163,7 +153,6 @@ export class LiquidityRangeAnalyzer {
         currentConsecutiveDaysOut++;
         maxConsecutiveDaysOut = Math.max(maxConsecutiveDaysOut, currentConsecutiveDaysOut);
         
-        // Determinar si salió por arriba o abajo del rango del ratio
         if (historicalPriceRatio > priceRatioRange.max) {
           daysOutOfRangeUp++;
         } else if (historicalPriceRatio < priceRatioRange.min) {
@@ -192,17 +181,14 @@ export class LiquidityRangeAnalyzer {
   
   
   private estimateImpermanentLoss(rangeUpPercent: number, rangeDownPercent: number): ImpermanentLossEstimation {
-    // Escenario 1: Precio sube al límite superior del rango
     const priceRatioUp = 1 + (rangeUpPercent / 100);
     const ilUp = this.calculateImpermanentLoss(priceRatioUp);
     const finalValueUp = 1000 * (1 + ilUp / 100); // Asumiendo inversión de $1000
     
-    // Escenario 2: Precio baja al límite inferior del rango
     const priceRatioDown = 1 - (rangeDownPercent / 100);
     const ilDown = this.calculateImpermanentLoss(1 / priceRatioDown); // Invertir el ratio
     const finalValueDown = 1000 * (1 + ilDown / 100); // Asumiendo inversión de $1000
     
-    // Calcular fees necesarios para cubrir IL promedio
     const avgIL = (Math.abs(ilUp) + Math.abs(ilDown)) / 2;
     const feesNeededToCoverIL = avgIL * 1.2; // 20% de margen adicional
     
@@ -254,7 +240,6 @@ export class LiquidityRangeAnalyzer {
     let confidence: number;
     let advice: string;
     
-    // Lógica de recomendación
     if (timeInRange >= 80 && avgIL <= 2 && volatility <= 5) {
       recommendation = 'EXCELLENT';
       confidence = 90;

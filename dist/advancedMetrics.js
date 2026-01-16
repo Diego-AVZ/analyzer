@@ -6,13 +6,11 @@ class AdvancedMetrics {
         if (klinesA.length < 5 || klinesB.length < 5) {
             return { aMomentum: 0, bMomentum: 0, momentumDivergence: 0, reversalProbability: 0 };
         }
-        // Calcular momentum de los últimos 5 días
         const recentA = klinesA.slice(-5);
         const recentB = klinesB.slice(-5);
         const aMomentum = recentA.reduce((sum, kline) => sum + kline.dailyChange, 0) / 5;
         const bMomentum = recentB.reduce((sum, kline) => sum + kline.dailyChange, 0) / 5;
         const momentumDivergence = Math.abs(aMomentum - bMomentum);
-        // Calcular probabilidad de reversión basada en divergencia extrema
         const reversalProbability = Math.min(100, momentumDivergence * 10);
         return { aMomentum, bMomentum, momentumDivergence, reversalProbability };
     }
@@ -20,7 +18,6 @@ class AdvancedMetrics {
         if (klinesA.length < 10 || klinesB.length < 10) {
             return { aVolumeTrend: 0, bVolumeTrend: 0, volumeCorrelation: 0, volumeSignal: 'LOW' };
         }
-        // Calcular tendencia de volumen (últimos 10 días vs anteriores)
         const recentA = klinesA.slice(-10);
         const previousA = klinesA.slice(-20, -10);
         const recentB = klinesB.slice(-10);
@@ -31,9 +28,7 @@ class AdvancedMetrics {
         const avgPreviousB = previousB.reduce((sum, kline) => sum + kline.volume, 0) / 10;
         const aVolumeTrend = ((avgRecentA - avgPreviousA) / avgPreviousA) * 100;
         const bVolumeTrend = ((avgRecentB - avgPreviousB) / avgPreviousB) * 100;
-        // Correlación de volumen
         const volumeCorrelation = this.calculateCorrelation(recentA.map(k => k.volume), recentB.map(k => k.volume));
-        // Señal de volumen basada en tendencias
         let volumeSignal = 'LOW';
         if (Math.abs(aVolumeTrend) > 50 || Math.abs(bVolumeTrend) > 50) {
             volumeSignal = 'HIGH';
@@ -53,13 +48,11 @@ class AdvancedMetrics {
                 volatilityExpansion: false
             };
         }
-        // Volatilidad de los últimos 20 días
         const recentA = klinesA.slice(-20);
         const recentB = klinesB.slice(-20);
         const aVolatility = this.calculateVolatility(recentA.map(k => k.dailyChange));
         const bVolatility = this.calculateVolatility(recentB.map(k => k.dailyChange));
         const volatilityRatio = bVolatility > 0 ? aVolatility / bVolatility : 0;
-        // Determinar régimen de volatilidad
         const avgVolatility = (aVolatility + bVolatility) / 2;
         let volatilityRegime = 'LOW';
         if (avgVolatility > 5) {
@@ -68,7 +61,6 @@ class AdvancedMetrics {
         else if (avgVolatility > 2) {
             volatilityRegime = 'MEDIUM';
         }
-        // Detectar expansión de volatilidad (comparar últimos 10 vs anteriores 10)
         const last10A = klinesA.slice(-10);
         const prev10A = klinesA.slice(-20, -10);
         const last10B = klinesB.slice(-10);
@@ -92,13 +84,10 @@ class AdvancedMetrics {
         }
         const recentA = klinesA.slice(-5);
         const recentB = klinesB.slice(-5);
-        // Calcular momentum reciente
         const aMomentum = recentA.reduce((sum, kline) => sum + kline.dailyChange, 0) / 5;
         const bMomentum = recentB.reduce((sum, kline) => sum + kline.dailyChange, 0) / 5;
-        // Calcular volatilidad reciente
         const aVolatility = this.calculateVolatility(recentA.map(k => k.dailyChange));
         const bVolatility = this.calculateVolatility(recentB.map(k => k.dailyChange));
-        // Señal de entrada basada en divergencia y correlación inversa
         let entrySignal = 'NEUTRAL';
         let signalStrength = 0;
         if (stats.correlationCoefficient < -0.2) {
@@ -111,12 +100,10 @@ class AdvancedMetrics {
                 signalStrength = Math.min(100, Math.abs(aMomentum - bMomentum) * 10);
             }
         }
-        // Señal de salida basada en convergencia
         let exitSignal = 'HOLD';
         if (Math.abs(aMomentum - bMomentum) < 0.5) {
             exitSignal = 'CLOSE_ALL';
         }
-        // Nivel de riesgo basado en volatilidad y consistencia
         let riskLevel = 'MEDIUM';
         const avgVolatility = (aVolatility + bVolatility) / 2;
         if (avgVolatility > 5 || stats.consistencyScore < 50) {
@@ -125,7 +112,6 @@ class AdvancedMetrics {
         else if (avgVolatility < 2 && stats.consistencyScore > 70) {
             riskLevel = 'LOW';
         }
-        // Retorno esperado basado en diferencia promedio histórica
         const expectedReturn = Math.abs(stats.averageDifference) * (signalStrength / 100);
         return {
             entrySignal,
@@ -147,16 +133,12 @@ class AdvancedMetrics {
                 riskAdjustedReturn: 0
             };
         }
-        // Calcular drawdown máximo
         const maxDrawdownA = this.calculateMaxDrawdown(klinesA);
         const maxDrawdownB = this.calculateMaxDrawdown(klinesB);
-        // Calcular Sharpe ratio (asumiendo risk-free rate = 0)
         const sharpeRatioA = this.calculateSharpeRatio(klinesA.map(k => k.dailyChange));
         const sharpeRatioB = this.calculateSharpeRatio(klinesB.map(k => k.dailyChange));
-        // Calcular Value at Risk (VaR) al 95%
         const var95A = this.calculateVaR(klinesA.map(k => k.dailyChange), 0.05);
         const var95B = this.calculateVaR(klinesB.map(k => k.dailyChange), 0.05);
-        // Retorno ajustado por riesgo
         const avgReturnA = klinesA.reduce((sum, k) => sum + k.dailyChange, 0) / klinesA.length;
         const avgReturnB = klinesB.reduce((sum, k) => sum + k.dailyChange, 0) / klinesB.length;
         const avgVolatilityA = this.calculateVolatility(klinesA.map(k => k.dailyChange));

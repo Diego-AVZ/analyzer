@@ -34,7 +34,6 @@ export class CorrelationAnalyzer {
       const klineA = klinesA[i];
       const klineB = klinesB[i];
       
-      // Verificar que los timestamps coincidan
       if (klineA.timestamp !== klineB.timestamp) {
         continue;
       }
@@ -51,7 +50,6 @@ export class CorrelationAnalyzer {
       
       totalDifference += difference;
       
-      // Actualizar diferencias máximas y mínimas
       if (i === 0) {
         maxSingleDayDifference = difference;
         minSingleDayDifference = difference;
@@ -60,32 +58,27 @@ export class CorrelationAnalyzer {
         minSingleDayDifference = Math.min(minSingleDayDifference, difference);
       }
       
-      // Análisis de dirección
       const aUp = changeA > 0;
       const bUp = changeB > 0;
       const aDown = changeA < 0;
       const bDown = changeB < 0;
       
-      // Días donde van en direcciones opuestas
       if ((aUp && bDown) || (aDown && bUp)) {
         oppositeDirectionDays++;
       }
       
-      // Días donde A supera a B
       if (changeA > changeB) {
         aOutperformsB++;
         totalDifferenceWhenAUp += difference;
         daysWhenAUp++;
       }
       
-      // Días donde B supera a A
       if (changeB > changeA) {
         bOutperformsA++;
         totalDifferenceWhenBUp += difference;
         daysWhenBUp++;
       }
       
-      // Correlación inversa: A sube más que B baja, o B sube más que A baja
       const inverseCondition = (aUp && bDown && changeA > Math.abs(changeB)) || 
                                (bUp && aDown && changeB > Math.abs(changeA));
       
@@ -99,20 +92,16 @@ export class CorrelationAnalyzer {
       }
     }
 
-    // Calcular métricas estadísticas
     const averageDifference = validDays > 0 ? totalDifference / validDays : 0;
     const averageDifferenceWhenAUp = daysWhenAUp > 0 ? totalDifferenceWhenAUp / daysWhenAUp : 0;
     const averageDifferenceWhenBUp = daysWhenBUp > 0 ? totalDifferenceWhenBUp / daysWhenBUp : 0;
     
-    // Calcular correlación estadística
     const correlationCoefficient = this.calculateCorrelationCoefficient(dailyChangesA, dailyChangesB);
     
-    // Calcular volatilidades
     const aVolatility = this.calculateVolatility(dailyChangesA);
     const bVolatility = this.calculateVolatility(dailyChangesB);
     const volatilityRatio = bVolatility > 0 ? aVolatility / bVolatility : 0;
     
-    // Calcular score de consistencia
     const consistencyScore = this.calculateConsistencyScore(differences, averageDifference);
 
     const stats: CorrelationStats = {
@@ -181,8 +170,6 @@ export class CorrelationAnalyzer {
     const variance = differences.reduce((sum, diff) => sum + Math.pow(diff - averageDifference, 2), 0) / differences.length;
     const standardDeviation = Math.sqrt(variance);
     
-    // Score inversamente proporcional a la desviación estándar
-    // Más consistente = menor desviación = mayor score
     return Math.max(0, 100 - (standardDeviation * 10));
   }
 
@@ -192,7 +179,6 @@ export class CorrelationAnalyzer {
     let confidence = 0;
     let strategyAdvice = '';
 
-    // Evaluar correlación inversa
     if (stats.inverseCorrelationPercentage >= 40 && stats.correlationCoefficient <= -0.3) {
       recommendation = 'STRONG_INVERSE';
       confidence = Math.min(100, stats.inverseCorrelationPercentage + Math.abs(stats.correlationCoefficient) * 100);
@@ -217,7 +203,6 @@ export class CorrelationAnalyzer {
       Estrategia recomendada: Buscar otros pares de tokens o estrategias diferentes.`;
     }
 
-    // Añadir información adicional
     strategyAdvice += `\n\n📈 MÉTRICAS ADICIONALES:
     • Días opuestos: ${stats.oppositeDirectionPercentage.toFixed(1)}%
     • ${stats.tokenA} supera a ${stats.tokenB}: ${stats.aOutperformsBPercentage.toFixed(1)}%

@@ -61,32 +61,26 @@ export class DeltaNeutralAnalyzer {
     timePeriod: number = 100
   ): Promise<DeltaNeutralResult> {
 
-    // Actualizar período de tiempo
     this.binanceService = new BinanceService(
       'https://api.binance.com/api/v3/klines',
       '1d',
       timePeriod
     );
 
-    // Analizar estrategia A
     const strategyAResult = await this.analyzeSingleStrategy(
       strategyA.longToken,
       strategyA.shortToken
     );
 
-    // Analizar estrategia B
     const strategyBResult = await this.analyzeSingleStrategy(
       strategyB.longToken,
       strategyB.shortToken
     );
 
-    // Analizar correlación entre estrategias
     const correlation = this.analyzeStrategyCorrelation(strategyAResult, strategyBResult);
 
-    // Calcular métricas del portafolio combinado
     const portfolioMetrics = this.calculatePortfolioMetrics(strategyAResult, strategyBResult, correlation);
 
-    // Generar recomendación final
     const recommendation = this.generateRecommendation(strategyAResult, strategyBResult, correlation, portfolioMetrics);
 
     const result: DeltaNeutralResult = {
@@ -104,7 +98,6 @@ export class DeltaNeutralAnalyzer {
 
   
   private async analyzeSingleStrategy(longToken: string, shortToken: string): Promise<StrategyResult> {
-    // Obtener datos de ambos tokens
     const longTokenData = await this.binanceService.getKlines(longToken.toUpperCase());
     const shortTokenData = await this.binanceService.getKlines(shortToken.toUpperCase());
 
@@ -112,20 +105,16 @@ export class DeltaNeutralAnalyzer {
       throw new Error(`Error obteniendo datos: ${longTokenData.error || shortTokenData.error}`);
     }
 
-    // Procesar los datos
     const longKlines = this.binanceService.processKlines(longTokenData.data!);
     const shortKlines = this.binanceService.processKlines(shortTokenData.data!);
 
-    // Validar datos
     if (!this.binanceService.validateKlines(longKlines) || !this.binanceService.validateKlines(shortKlines)) {
       throw new Error('Datos inválidos obtenidos de Binance');
     }
 
-    // Filtrar días válidos
     const filteredLongKlines = this.binanceService.filterValidDays(longKlines);
     const filteredShortKlines = this.binanceService.filterValidDays(shortKlines);
 
-    // Sincronizar timestamps
     const { synchronizedA, synchronizedB } = this.binanceService.synchronizeTimestamps(
       filteredLongKlines,
       filteredShortKlines
@@ -135,7 +124,6 @@ export class DeltaNeutralAnalyzer {
       throw new Error(`Insuficientes datos válidos: ${synchronizedA.length} días (mínimo: 30)`);
     }
 
-    // Realizar análisis Long/Short
     const stats = this.longShortAnalyzer.analyzeLongShortStrategy(
       longToken.toUpperCase(),
       shortToken.toUpperCase(),
@@ -157,7 +145,6 @@ export class DeltaNeutralAnalyzer {
     let strategyAWinsStrategyBLoses = 0;
     let strategyBWinsStrategyALoses = 0;
 
-    // Contar días por categoría
     for (let i = 0; i < dailyProfitsA.length; i++) {
       const profitA = dailyProfitsA[i];
       const profitB = dailyProfitsB[i];
@@ -173,18 +160,14 @@ export class DeltaNeutralAnalyzer {
       }
     }
 
-    // Calcular correlación estadística
     const correlationCoefficient = this.calculateCorrelationCoefficient(dailyProfitsA, dailyProfitsB);
 
-    // Calcular efectividad de cobertura
     const totalDays = dailyProfitsA.length;
     const hedgeDays = strategyAWinsStrategyBLoses + strategyBWinsStrategyALoses;
     const hedgeEffectiveness = (hedgeDays / totalDays) * 100;
 
-    // Calcular volatilidad combinada
     const combinedVolatility = this.calculateCombinedVolatility(dailyProfitsA, dailyProfitsB);
 
-    // Calcular Sharpe ratio del portafolio
     const portfolioSharpeRatio = this.calculatePortfolioSharpeRatio(dailyProfitsA, dailyProfitsB);
 
     return {
@@ -240,16 +223,13 @@ export class DeltaNeutralAnalyzer {
     const combinedTotalProfit = (strategyA.stats.totalProfit + strategyB.stats.totalProfit) / 2;
     const combinedAverageDailyProfit = (strategyA.stats.averageDailyProfit + strategyB.stats.averageDailyProfit) / 2;
 
-    // Calcular drawdown máximo combinado
     const maxDrawdownA = strategyA.stats.maxDrawdown;
     const maxDrawdownB = strategyB.stats.maxDrawdown;
     const maxCombinedDrawdown = Math.max(maxDrawdownA, maxDrawdownB);
 
-    // Calcular reducción de riesgo
     const individualVolatility = (strategyA.stats.profitVolatility + strategyB.stats.profitVolatility) / 2;
     const riskReduction = ((individualVolatility - correlation.combinedVolatility) / individualVolatility) * 100;
 
-    // Beneficio de diversificación
     const diversificationBenefit = correlation.hedgeEffectiveness;
 
     return {
@@ -275,7 +255,6 @@ export class DeltaNeutralAnalyzer {
     let confidence = 0;
     let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'HIGH';
 
-    // Evaluar criterios
     const criteria = {
       bothStrategiesGood: strategyA.recommendation !== 'SELL' && strategyB.recommendation !== 'SELL',
       lowCorrelation: Math.abs(correlation.correlationCoefficient) < 0.3,
@@ -284,7 +263,6 @@ export class DeltaNeutralAnalyzer {
       goodCombinedWinRate: portfolioMetrics.combinedWinRate > 50
     };
 
-    // Calcular puntuación
     const score = Object.values(criteria).filter(Boolean).length;
     
     if (score >= 4) {
@@ -305,7 +283,6 @@ export class DeltaNeutralAnalyzer {
       riskLevel = 'HIGH';
     }
 
-    // Generar consejo
     let advice = '';
     if (overallRecommendation === 'EXCELLENT') {
       advice = '🔥 EXCELENTE combinación delta neutral. Ambas estrategias se complementan perfectamente con alta efectividad de cobertura.';

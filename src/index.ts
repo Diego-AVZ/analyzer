@@ -25,13 +25,10 @@ class BinanceCorrelationAnalyzer {
   async run(): Promise<void> {
     try {
       
-      // Obtener todos los símbolos únicos
       const allSymbols = this.getAllUniqueSymbols();
 
-      // Obtener datos de todos los símbolos
       const symbolData = await this.binanceService.getMultipleKlines(allSymbols);
       
-      // Verificar que todos los datos se obtuvieron correctamente
       const failedSymbols = Array.from(symbolData.entries())
         .filter(([_, data]) => !data.success)
         .map(([symbol, _]) => symbol);
@@ -40,23 +37,18 @@ class BinanceCorrelationAnalyzer {
         return;
       }
 
-      // Procesar datos y preparar para análisis
       const processedData = this.processSymbolData(symbolData);
       
-      // Preparar estrategias para análisis
       const strategiesToAnalyze = this.prepareStrategiesForAnalysis(processedData);
       
       if (strategiesToAnalyze.length === 0) {
         return;
       }
 
-      // Realizar análisis
       const results = this.analyzeLongShortStrategies(strategiesToAnalyze);
       
-      // Generar reportes
       this.reportGenerator.generateConsoleReport(results);
       
-      // Guardar reportes en archivos
       await this.saveReports(results);
       
       
@@ -115,7 +107,6 @@ class BinanceCorrelationAnalyzer {
       const shortKlines = processedData.get(pair.shortToken);
       
       if (longKlines && shortKlines) {
-        // Sincronizar timestamps
         const { synchronizedA, synchronizedB } = this.binanceService.synchronizeTimestamps(longKlines, shortKlines);
         
         if (synchronizedA.length >= this.config.analysis.minDaysForAnalysis) {
@@ -178,19 +169,15 @@ class BinanceCorrelationAnalyzer {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const reportsDir = 'reports';
       
-      // Crear directorio de reportes si no existe
       try {
         await fs.mkdir(reportsDir, { recursive: true });
       } catch (error) {
-        // El directorio ya existe
       }
       
-      // Guardar reporte JSON
       const jsonReport = this.reportGenerator.generateJSONReport(results);
       const jsonPath = path.join(reportsDir, `correlation-analysis-${timestamp}.json`);
       await fs.writeFile(jsonPath, jsonReport, 'utf8');
       
-      // Guardar reporte CSV
       const csvReport = this.reportGenerator.generateCSVReport(results);
       const csvPath = path.join(reportsDir, `correlation-analysis-${timestamp}.csv`);
       await fs.writeFile(csvPath, csvReport, 'utf8');
@@ -210,7 +197,6 @@ async function main(): Promise<void> {
   }
 }
 
-// Ejecutar si es el archivo principal
 if (require.main === module) {
   main();
 }

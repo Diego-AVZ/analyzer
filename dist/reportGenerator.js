@@ -3,13 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportGenerator = void 0;
 class ReportGenerator {
     generateConsoleReport(results) {
-        // Ordenar resultados por confianza descendente
         const sortedResults = results.sort((a, b) => b.confidence - a.confidence);
-        // Resumen ejecutivo
         this.printExecutiveSummary(sortedResults);
-        // Detalles por par
         this.printDetailedResults(sortedResults);
-        // Recomendaciones finales
         this.printFinalRecommendations(sortedResults);
     }
     printExecutiveSummary(results) {

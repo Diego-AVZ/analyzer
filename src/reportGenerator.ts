@@ -7,16 +7,12 @@ export class ReportGenerator {
   
   generateConsoleReport(results: LongShortAnalysisResult[]): void {
     
-    // Ordenar resultados por confianza descendente
     const sortedResults = results.sort((a, b) => b.confidence - a.confidence);
     
-    // Resumen ejecutivo
     this.printExecutiveSummary(sortedResults);
     
-    // Detalles por par
     this.printDetailedResults(sortedResults);
     
-    // Recomendaciones finales
     this.printFinalRecommendations(sortedResults);
     
   }
