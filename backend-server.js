@@ -879,17 +879,81 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
     const finalResults = filteredResults.slice(0, parseInt(limit));
 
-    const resultsWithAPR = finalResults.map(result => ({
-      pair: result.pair,
-      longToken: result.longToken,
-      shortToken: result.shortToken,
-      metrics: result.metrics,
-      riskLevel: result.riskLevel,
-      apr: calculateAPR(result.metrics),
-      winRate100d: result.metrics['100d']?.winRate || 0,
-      avgDailyProfit100d: result.metrics['100d']?.averageDailyProfit || 0,
-      totalProfit100d: result.metrics['100d']?.totalProfit || 0
-    }));
+    async function getPairValues(longToken, shortToken) {
+      try {
+        const binanceService = new BinanceService(
+          'https://api.binance.com/api/v3/klines',
+          '1d',
+          100
+        );
+
+        const longTokenData = await binanceService.getKlines(longToken);
+        const shortTokenData = await binanceService.getKlines(shortToken);
+
+        if (!longTokenData.success || !shortTokenData.success) {
+          return [];
+        }
+
+        const longKlines = binanceService.processKlines(longTokenData.data);
+        const shortKlines = binanceService.processKlines(shortTokenData.data);
+
+        if (!binanceService.validateKlines(longKlines) || !binanceService.validateKlines(shortKlines)) {
+          return [];
+        }
+
+        const filteredLongKlines = binanceService.filterValidDays(longKlines);
+        const filteredShortKlines = binanceService.filterValidDays(shortKlines);
+
+        const { synchronizedA, synchronizedB } = binanceService.synchronizeTimestamps(
+          filteredLongKlines,
+          filteredShortKlines
+        );
+
+        const values = synchronizedA.map((longKline, index) => {
+          const shortKline = synchronizedB[index];
+          if (shortKline.close !== 0) {
+            return parseFloat((longKline.close / shortKline.close).toFixed(8));
+          }
+          return 0;
+        }).filter(v => v !== 0);
+
+        if (values.length > 0 && values.length < 100) {
+          const firstValue = values[0];
+          while (values.length < 100) {
+            values.unshift(firstValue);
+          }
+        }
+
+        return values.slice(-100);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function extractTokenSymbol(token) {
+      return token.replace('USDT', '');
+    }
+
+    const resultsWithAPRAndValues = await Promise.all(
+      finalResults.map(async (result) => {
+        const values = await getPairValues(result.longToken, result.shortToken);
+        
+        return {
+          pair: result.pair,
+          longToken: extractTokenSymbol(result.longToken),
+          shortToken: extractTokenSymbol(result.shortToken),
+          metrics: result.metrics,
+          riskLevel: result.riskLevel,
+          apr: calculateAPR(result.metrics),
+          winRate100d: result.metrics['100d']?.winRate || 0,
+          avgDailyProfit100d: result.metrics['100d']?.averageDailyProfit || 0,
+          totalProfit100d: result.metrics['100d']?.totalProfit || 0,
+          values: values
+        };
+      })
+    );
+
+    const resultsWithAPR = resultsWithAPRAndValues;
 
     const response = {
       strategies: resultsWithAPR,
