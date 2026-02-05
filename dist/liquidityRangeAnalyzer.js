@@ -36,7 +36,9 @@ class LiquidityRangeAnalyzer {
         for (let i = 0; i < klinesA.length; i++) {
             const priceA = klinesA[i].close;
             const priceB = klinesB[i].close;
+            // Calcular el ratio de precios histórico (A/B)
             const historicalPriceRatio = priceB !== 0 ? priceA / priceB : 0;
+            // Calcular volatilidad del ratio (cambio porcentual del ratio)
             let ratioVolatility = 0;
             if (i > 0) {
                 const prevPriceA = klinesA[i - 1].close;
@@ -47,6 +49,7 @@ class LiquidityRangeAnalyzer {
                 }
             }
             volatilities.push(ratioVolatility);
+            // Verificar si el ratio está en rango
             const ratioInRange = historicalPriceRatio >= priceRatioRange.min && historicalPriceRatio <= priceRatioRange.max;
             if (ratioInRange) {
                 daysInRange++;
@@ -55,6 +58,7 @@ class LiquidityRangeAnalyzer {
             else {
                 currentConsecutiveDaysOut++;
                 maxConsecutiveDaysOut = Math.max(maxConsecutiveDaysOut, currentConsecutiveDaysOut);
+                // Determinar si salió por arriba o abajo del rango del ratio
                 if (historicalPriceRatio > priceRatioRange.max) {
                     daysOutOfRangeUp++;
                 }
@@ -79,12 +83,15 @@ class LiquidityRangeAnalyzer {
         };
     }
     estimateImpermanentLoss(rangeUpPercent, rangeDownPercent) {
+        // Escenario 1: Precio sube al límite superior del rango
         const priceRatioUp = 1 + (rangeUpPercent / 100);
         const ilUp = this.calculateImpermanentLoss(priceRatioUp);
         const finalValueUp = 1000 * (1 + ilUp / 100); // Asumiendo inversión de $1000
+        // Escenario 2: Precio baja al límite inferior del rango
         const priceRatioDown = 1 - (rangeDownPercent / 100);
         const ilDown = this.calculateImpermanentLoss(1 / priceRatioDown); // Invertir el ratio
         const finalValueDown = 1000 * (1 + ilDown / 100); // Asumiendo inversión de $1000
+        // Calcular fees necesarios para cubrir IL promedio
         const avgIL = (Math.abs(ilUp) + Math.abs(ilDown)) / 2;
         const feesNeededToCoverIL = avgIL * 1.2; // 20% de margen adicional
         return {
@@ -117,6 +124,7 @@ class LiquidityRangeAnalyzer {
         let recommendation;
         let confidence;
         let advice;
+        // Lógica de recomendación
         if (timeInRange >= 80 && avgIL <= 2 && volatility <= 5) {
             recommendation = 'EXCELLENT';
             confidence = 90;

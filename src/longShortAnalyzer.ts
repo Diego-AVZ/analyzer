@@ -2,7 +2,13 @@ import { ProcessedKline, CorrelationStats } from './types';
 
 export class LongShortAnalyzer {
   
-  analyzeLongShortStrategy(longToken: string, shortToken: string, longKlines: ProcessedKline[], shortKlines: ProcessedKline[]): LongShortStats {
+  analyzeLongShortStrategy(
+    longToken: string,
+    shortToken: string,
+    longKlines: ProcessedKline[],
+    shortKlines: ProcessedKline[],
+    fundingFees?: { fundingFeeLong?: string; fundingFeeShort?: string }
+  ): LongShortStats {
     const totalDays = longKlines.length;
     let validDays = 0;
     let winningDays = 0;
@@ -140,7 +146,9 @@ export class LongShortAnalyzer {
       currentConsecutiveLoss,
       currentConsecutivePercentageWins,
       currentConsecutivePercentageLoss,
-      rsi
+      rsi,
+      fundingFeeLong: fundingFees?.fundingFeeLong,
+      fundingFeeShort: fundingFees?.fundingFeeShort
     };
 
     stats.recommendation = this.calculateRecommendationScore(stats);
@@ -464,6 +472,8 @@ export interface LongShortStats {
   currentConsecutivePercentageWins: number;
   currentConsecutivePercentageLoss: number;
   rsi: number;
+  fundingFeeLong?: string;
+  fundingFeeShort?: string;
 }
 
 export interface LongShortAnalysisResult {

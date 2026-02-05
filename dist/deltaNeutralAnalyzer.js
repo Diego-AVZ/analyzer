@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeltaNeutralAnalyzer = void 0;
 const binanceService_1 = require("./binanceService");
 const longShortAnalyzer_1 = require("./longShortAnalyzer");
+const fundingFeesService_1 = require("./fundingFeesService");
 class DeltaNeutralAnalyzer {
     constructor() {
         this.binanceService = new binanceService_1.BinanceService('https://api.binance.com/api/v3/klines', '1d', 100);
@@ -10,8 +11,15 @@ class DeltaNeutralAnalyzer {
     }
     async analyzeDeltaNeutral(strategyA, strategyB, timePeriod = 100) {
         this.binanceService = new binanceService_1.BinanceService('https://api.binance.com/api/v3/klines', '1d', timePeriod);
-        const strategyAResult = await this.analyzeSingleStrategy(strategyA.longToken, strategyA.shortToken);
-        const strategyBResult = await this.analyzeSingleStrategy(strategyB.longToken, strategyB.shortToken);
+        let fundingMap = new Map();
+        try {
+            fundingMap = await (0, fundingFeesService_1.fetchFundingFees)();
+        }
+        catch {
+            // Continuar sin funding fees si el API falla
+        }
+        const strategyAResult = await this.analyzeSingleStrategy(strategyA.longToken, strategyA.shortToken, fundingMap);
+        const strategyBResult = await this.analyzeSingleStrategy(strategyB.longToken, strategyB.shortToken, fundingMap);
         const correlation = this.analyzeStrategyCorrelation(strategyAResult, strategyBResult);
         const portfolioMetrics = this.calculatePortfolioMetrics(strategyAResult, strategyBResult, correlation);
         const recommendation = this.generateRecommendation(strategyAResult, strategyBResult, correlation, portfolioMetrics);
@@ -25,7 +33,7 @@ class DeltaNeutralAnalyzer {
         this.printSummary(result);
         return result;
     }
-    async analyzeSingleStrategy(longToken, shortToken) {
+    async analyzeSingleStrategy(longToken, shortToken, fundingMap) {
         const longTokenData = await this.binanceService.getKlines(longToken.toUpperCase());
         const shortTokenData = await this.binanceService.getKlines(shortToken.toUpperCase());
         if (!longTokenData.success || !shortTokenData.success) {
@@ -42,7 +50,8 @@ class DeltaNeutralAnalyzer {
         if (synchronizedA.length < 30) {
             throw new Error(`Insufficient valid data: ${synchronizedA.length} days (minimum: 30)`);
         }
-        const stats = this.longShortAnalyzer.analyzeLongShortStrategy(longToken.toUpperCase(), shortToken.toUpperCase(), synchronizedA, synchronizedB);
+        const { fundingFeeLong, fundingFeeShort } = (0, fundingFeesService_1.getFundingFeesForStrategy)(fundingMap, longToken, shortToken);
+        const stats = this.longShortAnalyzer.analyzeLongShortStrategy(longToken.toUpperCase(), shortToken.toUpperCase(), synchronizedA, synchronizedB, { fundingFeeLong, fundingFeeShort });
         const result = this.longShortAnalyzer.generateRecommendation(stats);
         return result;
     }

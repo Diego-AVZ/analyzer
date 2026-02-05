@@ -1,6 +1,7 @@
 import { BinanceService } from './binanceService';
 import { LongShortAnalyzer, LongShortStats, LongShortAnalysisResult } from './longShortAnalyzer';
 import { ProcessedKline } from './types';
+import { fetchFundingFees, getFundingFeesForStrategy, FundingFeesMap } from './fundingFeesService';
 
 
 export type StrategyResult = LongShortAnalysisResult;
@@ -67,14 +68,23 @@ export class DeltaNeutralAnalyzer {
       timePeriod
     );
 
+    let fundingMap: FundingFeesMap = new Map();
+    try {
+      fundingMap = await fetchFundingFees();
+    } catch {
+      // Continuar sin funding fees si el API falla
+    }
+
     const strategyAResult = await this.analyzeSingleStrategy(
       strategyA.longToken,
-      strategyA.shortToken
+      strategyA.shortToken,
+      fundingMap
     );
 
     const strategyBResult = await this.analyzeSingleStrategy(
       strategyB.longToken,
-      strategyB.shortToken
+      strategyB.shortToken,
+      fundingMap
     );
 
     const correlation = this.analyzeStrategyCorrelation(strategyAResult, strategyBResult);
@@ -97,7 +107,11 @@ export class DeltaNeutralAnalyzer {
   }
 
   
-  private async analyzeSingleStrategy(longToken: string, shortToken: string): Promise<StrategyResult> {
+  private async analyzeSingleStrategy(
+    longToken: string,
+    shortToken: string,
+    fundingMap: FundingFeesMap
+  ): Promise<StrategyResult> {
     const longTokenData = await this.binanceService.getKlines(longToken.toUpperCase());
     const shortTokenData = await this.binanceService.getKlines(shortToken.toUpperCase());
 
@@ -124,11 +138,18 @@ export class DeltaNeutralAnalyzer {
       throw new Error(`Insufficient valid data: ${synchronizedA.length} days (minimum: 30)`);
     }
 
+    const { fundingFeeLong, fundingFeeShort } = getFundingFeesForStrategy(
+      fundingMap,
+      longToken,
+      shortToken
+    );
+
     const stats = this.longShortAnalyzer.analyzeLongShortStrategy(
       longToken.toUpperCase(),
       shortToken.toUpperCase(),
       synchronizedA,
-      synchronizedB
+      synchronizedB,
+      { fundingFeeLong, fundingFeeShort }
     );
 
     const result = this.longShortAnalyzer.generateRecommendation(stats);

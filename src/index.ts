@@ -3,6 +3,7 @@ import { BinanceService } from './binanceService';
 import { LongShortAnalyzer, LongShortAnalysisResult } from './longShortAnalyzer';
 import { ReportGenerator } from './reportGenerator';
 import { AnalysisResult } from './types';
+import { fetchFundingFees, getFundingFeesForStrategy, FundingFeesMap } from './fundingFeesService';
 
 
 class BinanceCorrelationAnalyzer {
@@ -45,7 +46,14 @@ class BinanceCorrelationAnalyzer {
         return;
       }
 
-      const results = this.analyzeLongShortStrategies(strategiesToAnalyze);
+      let fundingMap: FundingFeesMap = new Map();
+      try {
+        fundingMap = await fetchFundingFees();
+      } catch (err) {
+        // Continuar sin funding fees si el API falla
+      }
+
+      const results = this.analyzeLongShortStrategies(strategiesToAnalyze, fundingMap);
       
       this.reportGenerator.generateConsoleReport(results);
       
@@ -132,18 +140,23 @@ class BinanceCorrelationAnalyzer {
     shortToken: string;
     longKlines: any[];
     shortKlines: any[];
-  }>): LongShortAnalysisResult[] {
+  }>, fundingMap: FundingFeesMap): LongShortAnalysisResult[] {
     
     const results: LongShortAnalysisResult[] = [];
     
-    strategies.forEach((strategy, index) => {
-      
+    strategies.forEach((strategy) => {
+      const { fundingFeeLong, fundingFeeShort } = getFundingFeesForStrategy(
+        fundingMap,
+        strategy.longToken,
+        strategy.shortToken
+      );
       try {
         const stats = this.longShortAnalyzer.analyzeLongShortStrategy(
           strategy.longToken, 
           strategy.shortToken, 
           strategy.longKlines, 
-          strategy.shortKlines
+          strategy.shortKlines,
+          { fundingFeeLong, fundingFeeShort }
         );
         const result = this.longShortAnalyzer.generateRecommendation(stats);
         results.push(result);

@@ -38,6 +38,7 @@ const config_1 = require("./config");
 const binanceService_1 = require("./binanceService");
 const longShortAnalyzer_1 = require("./longShortAnalyzer");
 const reportGenerator_1 = require("./reportGenerator");
+const fundingFeesService_1 = require("./fundingFeesService");
 class BinanceCorrelationAnalyzer {
     constructor() {
         this.config = (0, config_1.getConfig)();
@@ -60,7 +61,14 @@ class BinanceCorrelationAnalyzer {
             if (strategiesToAnalyze.length === 0) {
                 return;
             }
-            const results = this.analyzeLongShortStrategies(strategiesToAnalyze);
+            let fundingMap = new Map();
+            try {
+                fundingMap = await (0, fundingFeesService_1.fetchFundingFees)();
+            }
+            catch (err) {
+                // Continuar sin funding fees si el API falla
+            }
+            const results = this.analyzeLongShortStrategies(strategiesToAnalyze, fundingMap);
             this.reportGenerator.generateConsoleReport(results);
             await this.saveReports(results);
         }
@@ -114,11 +122,12 @@ class BinanceCorrelationAnalyzer {
         });
         return strategiesToAnalyze;
     }
-    analyzeLongShortStrategies(strategies) {
+    analyzeLongShortStrategies(strategies, fundingMap) {
         const results = [];
-        strategies.forEach((strategy, index) => {
+        strategies.forEach((strategy) => {
+            const { fundingFeeLong, fundingFeeShort } = (0, fundingFeesService_1.getFundingFeesForStrategy)(fundingMap, strategy.longToken, strategy.shortToken);
             try {
-                const stats = this.longShortAnalyzer.analyzeLongShortStrategy(strategy.longToken, strategy.shortToken, strategy.longKlines, strategy.shortKlines);
+                const stats = this.longShortAnalyzer.analyzeLongShortStrategy(strategy.longToken, strategy.shortToken, strategy.longKlines, strategy.shortKlines, { fundingFeeLong, fundingFeeShort });
                 const result = this.longShortAnalyzer.generateRecommendation(stats);
                 results.push(result);
             }

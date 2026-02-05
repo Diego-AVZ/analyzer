@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LongShortAnalyzer = void 0;
 class LongShortAnalyzer {
-    analyzeLongShortStrategy(longToken, shortToken, longKlines, shortKlines) {
+    analyzeLongShortStrategy(longToken, shortToken, longKlines, shortKlines, fundingFees) {
         const totalDays = longKlines.length;
         let validDays = 0;
         let winningDays = 0;
@@ -126,7 +126,9 @@ class LongShortAnalyzer {
             currentConsecutiveLoss,
             currentConsecutivePercentageWins,
             currentConsecutivePercentageLoss,
-            rsi
+            rsi,
+            fundingFeeLong: fundingFees?.fundingFeeLong,
+            fundingFeeShort: fundingFees?.fundingFeeShort
         };
         stats.recommendation = this.calculateRecommendationScore(stats);
         return stats;

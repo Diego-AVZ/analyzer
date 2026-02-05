@@ -40,7 +40,9 @@ interface AnalyzeResponse {
     currentConsecutivePercentageWins: number;
     currentConsecutivePercentageLoss: number;
     rsi: number;
-    // NOTE: sharpeRatio, consistencyScore, and recommendation are REMOVED from response
+    fundingFeeLong?: string; // e.g. "+ 0.0020%" (from funding-fees API, USDC markets)
+    fundingFeeShort?: string; // e.g. "- 0.0018%"
+    // NOTE: sharpeRatio, consistencyScore, and recommendation (numeric score) are REMOVED from response
   };
   marketCapAlignment: {
     level: 'HIGH' | 'MEDIUM' | 'LOW' | 'VERY_LOW' | 'UNKNOWN';

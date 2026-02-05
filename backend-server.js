@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 
+console.log('Iniciando servidor...');
 const app = express();
 const PORT = 3001;
 
@@ -320,6 +321,7 @@ app.options('*', (req, res) => {
 
 const { BinanceService } = require('./dist/binanceService');
 const { LongShortAnalyzer } = require('./dist/longShortAnalyzer');
+const { fetchFundingFees, getFundingFeesForStrategy } = require('./dist/fundingFeesService');
 const { DeltaNeutralAnalyzer } = require('./dist/deltaNeutralAnalyzer');
 const { LiquidityRangeAnalyzer } = require('./dist/liquidityRangeAnalyzer');
 const { getConfig } = require('./dist/config');
@@ -450,11 +452,23 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
+    let fundingMap = new Map();
+    try {
+      fundingMap = await fetchFundingFees();
+    } catch (err) {
+    }
+    const { fundingFeeLong, fundingFeeShort } = getFundingFeesForStrategy(
+      fundingMap,
+      longToken,
+      shortToken
+    );
+
     const stats = longShortAnalyzer.analyzeLongShortStrategy(
       longToken.toUpperCase(),
       shortToken.toUpperCase(),
       synchronizedA,
-      synchronizedB
+      synchronizedB,
+      { fundingFeeLong, fundingFeeShort }
     );
 
     const result = longShortAnalyzer.generateRecommendation(stats);
@@ -768,6 +782,13 @@ app.get('/api/strategy-bundles', async (req, res) => {
     const timePeriods = [30, 60, 100];
     const analysisResults = [];
 
+    let fundingMap = new Map();
+    try {
+      fundingMap = await fetchFundingFees();
+    } catch (err) {
+      // Continuar sin funding fees si el API falla
+    }
+
     async function getTokenData(token, period) {
       const cacheKey = `${token}-${period}`;
       
@@ -802,12 +823,19 @@ app.get('/api/strategy-bundles', async (req, res) => {
 
     for (const pair of systematicPairs) {
       try {
+        const { fundingFeeLong, fundingFeeShort } = getFundingFeesForStrategy(
+          fundingMap,
+          pair.longToken,
+          pair.shortToken
+        );
         const pairResults = {
           pair: `${pair.longToken}/${pair.shortToken}`,
           longToken: pair.longToken,
           shortToken: pair.shortToken,
           metrics: {},
-          riskLevel: 'MEDIUM'
+          riskLevel: 'MEDIUM',
+          fundingFeeLong: fundingFeeLong,
+          fundingFeeShort: fundingFeeShort
         };
 
         for (const period of timePeriods) {
@@ -828,7 +856,8 @@ app.get('/api/strategy-bundles', async (req, res) => {
                   pair.longToken,
                   pair.shortToken,
                   synchronizedA,
-                  synchronizedB
+                  synchronizedB,
+                  { fundingFeeLong, fundingFeeShort }
                 );
 
                 const result = longShortAnalyzer.generateRecommendation(stats);
@@ -944,6 +973,8 @@ app.get('/api/strategy-bundles', async (req, res) => {
           shortToken: extractTokenSymbol(result.shortToken),
           metrics: result.metrics,
           riskLevel: result.riskLevel,
+          fundingFeeLong: result.fundingFeeLong,
+          fundingFeeShort: result.fundingFeeShort,
           apr: calculateAPR(result.metrics),
           winRate100d: result.metrics['100d']?.winRate || 0,
           avgDailyProfit100d: result.metrics['100d']?.averageDailyProfit || 0,
